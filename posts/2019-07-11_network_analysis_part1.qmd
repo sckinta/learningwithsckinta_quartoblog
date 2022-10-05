@@ -1,0 +1,372 @@
+---
+title: "Network Analysis in R - Part 1"
+date: "2019-07-11"
+categories: [R, network]
+execute:
+  echo: true
+  warning: false
+  message: false
+  code-overflow: wrap
+image: "https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png"
+---
+
+Network analysis, also called graph analysis, is to study the complexity of the inter-relationships between actors of all sorts and provides an architectural view of individual actor connections.
+
+It has been applied to many fields, like social network and gene network, and useful for any systematic studies on individual relationship [^1].
+
+[^1]: https://en.wikipedia.org/wiki/Graph_theory
+
+I will create a three part series [^2] of network analysis and visualization using R packages `{igraph}` and `{ggraph}`. In this post, I will focus on general introduction of the terminology and R objects used in network analysis.
+
+[^2]: Here are [part-2](https://learniningwithsckinta.netlify.com/post/network_analysis_part2-2/) and [part-3](https://learniningwithsckinta.netlify.com/post/network_analysis_part3/)
+
+# Glossaries
+
+-   **Vertex**: is the node of network.
+
+-   **Edge**: the connection of notes, sometimes called "linked". The edge can be **directed** or **undirected**, depending on whether the distinction between source and target is meaningful.
+
+-   **Graph**: constitute of vertex and edges, which represents the whole inter-relationship of nodes. The **subgraph**, from the other hand, represents the inter-relationship of a subset of nodes.
+
+-   **Cliques**: Fully connected sub-graphs of a graph in which the every vertex connects with every other vertex.
+
+-   **Degree** : the number of adjacent vertex.
+
+-   **Order** : how far away from one vertex to another. order 0 is always v itself, order 1 is v plus its immediate neighbors, order 2 is order 1 plus the immediate neighbors of the vertices in order 1, etc.
+
+-   **Attribute**: attributes are associated with either vertex or edge. By default, the `name` is the mandatory attribute for vertex and edge. If the edges have a magnitude attribute, the graph is considered **weighted**.
+
+-   **Bipartite networks**: two-mode networks, in which there are two types of vertex and connections are only allowed between different types of nodes. Thus, `type` is a mandatory vertex attribute for bipartite networks. There are two types of common used bipartite networks:
+
+    1)  Two types of vertex are annotated either "**individual**" or "**group**" to which the individual belong to. This is also called "affiliation network".
+
+    2)  the network consistent of two "**parallel**" types of vertex, in which type 1 only interact with type 2 while no interactions happen within the same type.
+
+```{r}
+library(igraph)
+library(tidyverse)
+library(ggraph)
+library(gridExtra)
+```
+
+# IGRAPH object
+
+**IGRAPH object** is a R object defined in `igraph` package.
+
+```{r}
+make_graph(letters[1:10], directed = T)
+```
+
+The first line of IGRAPH `IGRAPH dca479d DN-- 10 5 --` means a graph with id `dca479d` is *directed* (`D`) and *named* (`N`) containing `10` *vertices* and `5` *edges*.
+
+The second line `+ attr: name (v/c)` indicates the attributes associated with vertex (`v`) and/or edge (`e`). In our example, only vertex has attribute `name` which is a character variable (`c`).
+
+The third and fourth line of IGRAPH literally print what edges are. In our case, since graph is directed, the arrow shows the direction of edge.
+
+It is worth to mention that the name of edges can be listed by vertices name in a `from|to` format. In most cases, names are the default attributes for vertex and can be used just like index to extract information directly from `IGRAPH` object. We will discuss this in detail in "graph subset" session.
+
+# IGRAPH object manipulation
+
+## Create a graph
+
+There are many ways to create graph from scratch.
+
+-   Easy graph:`graph_from_literal`, `make_graph`
+
+-   Create from user data: `graph_from_edgelist`, `graph_from_adjacency_matrix`, `graph_from_data_frame`
+
+-   Random graphs: `sample_gnp`, `sample_gnm`, `sample_pa`, `sample_smallworld`, etc.
+
+The following are a few examples of ways frequently used by me to make graph .
+
+### edge list matrix
+
+The example below generates a directed graph from a list of vertex pair (edge)
+
+```{r}
+edge_list <-
+    data.frame(from = c(1, 2, 2, 3, 4), to = c(2, 3, 4, 2, 1)) %>% 
+    as.matrix()
+
+g <- graph_from_edgelist(edge_list,directed = TRUE)
+
+g
+
+plot(g)
+```
+
+### one-mode graph from a vector of edge
+
+If the edge is given in a single vector, the default `make_graph` will use the order of vector to make one-mode graph. It means that the 1st edge points from the 1st element to the 2nd element, the 2nd edge from the 3rd element to the 4th element, etc. If the length of vector is odd number, it will end with last element connecting back to the 1st element, and throw a warning.
+
+```{r}
+g <- make_graph(letters[1:10], directed = T)
+g
+plot(g)
+```
+
+### using adjacent matrix
+
+The example below generates a undirected graph from a binary matrix, in which nodes are matrix colname and rowname.
+
+```{r}
+set.seed(123)
+
+adj_matrix <-
+    matrix(sample(0:1, 100, replace = TRUE, prob = c(0.8, 0.1)), nc = 10)
+
+colnames(adj_matrix) <- letters[1:10]
+
+rownames(adj_matrix) <- letters[1:10]
+
+adj_matrix
+
+g <-
+    graph_from_adjacency_matrix(adj_matrix, mode = "undirected", weighted = T)
+
+g
+plot(g)
+```
+
+There are other modes [^3] available with details.
+
+[^3]: https://igraph.org/r/doc/graph_from_adjacency_matrix.html
+
+### Using named data.frame
+
+This is my favorite. The graph generated from `data.frame` can add all attributes at once. The below example is from official website. The attributes for nodes (`actors`) are `age` and `gender`, and edge (`relationship`) attributes include `same.dept`, `friendship` and `advice`.
+
+```{r graphDataFrame}
+actors <- data.frame(
+  name=c("Alice", "Bob", "Cecil", "David","Esmeralda"),
+  age=c(48,33,45,34,21),
+  gender=c("F","M","F","M","F"))
+
+relations <- data.frame(
+  from=c("Bob", "Cecil", "Cecil", "David","David", "Esmeralda"),
+  to=c("Alice", "Bob", "Alice", "Alice", "Bob", "Alice"),
+  same.dept=c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE),
+  friendship=c(4,5,5,2,1,1), 
+  advice=c(4,5,5,4,2,3)
+  )
+
+actor_relation_g <- graph_from_data_frame(relations, directed=TRUE, vertices=actors)
+
+actor_relation_g
+plot(actor_relation_g)
+```
+
+### Create random graph
+
+Random graph generation is useful when it comes to simulation.
+
+-   `sample_gnp` and `sample_gnm` generate random graph by assuming the same constant probability for every possible edge.
+
+    -   The required parameters for *gnp* include: 1) The number of vertices in the graph `n` and 2) The probability for drawing an edge between two arbitrary vertices `p`
+
+```{r}
+# sample 10 vertex, every possible edge is created with the same constant probability 0.3
+set.seed(12)
+gr <- sample_gnp(10, 0.3)
+gr
+plot(gr)
+```
+
+    -  The required parameters for *gmp* include: 1) The number of vertices in the graph `n` and 2) The number of edges in the graph `m`.
+
+```{r}
+# sample 10 vertex, create a 15-edge graph
+set.seed(123)
+gr <- sample_gnm(10, 15)
+gr
+plot(gr)
+```
+
+-   Random scale free network, which means a network whose degree of nodes distribution follows a power law. `sample_pa` generates scale-free graphs according to the Barabasi-Albert model. We start with a single vertex and no edges in the first time step. Then we add one vertex in each time step and the new vertex initiates some edges to old vertices. The probability that an old vertex is chosen is given by $p(i) ~ k_i * power + zero.appeal$
+
+```{r}
+set.seed(123)
+
+gr <- sample_pa(100, power = 2)
+
+plot(g, vertex.label= NA, edge.arrow.size=0.02,vertex.size = 0.5)
+
+plot(density(degree_distribution(gr)))
+```
+
+There are many other random graphs using different models. To find more, try `?igraph::sample_[TAB]`.
+
+## Extract vertex/edge and their attributes
+
+To get vertex list and their attributes from graph object, we use `V(graph)$"<attribute_name>"` to convert graph object to vector. Using IGRAPH `actor_relation_g` created in previous chunk as example, we will get actor node (`name`), `age` (attribute 1) and `gender` (attribute 2)
+
+```{r}
+V(actor_relation_g)$name
+V(actor_relation_g)$age
+V(actor_relation_g)$gender
+```
+
+We can also get all the vertex attributes to a data.frame using `igraph::as_data_frame()`
+
+```{r}
+igraph::as_data_frame(actor_relation_g, what = "vertices")
+```
+
+Similarly, to get edge list and their attributes from graph object, we use `E(graph)$"<attribute_name>"` to convert graph object to vector. OR using `igraph::as_data_frame()` to convert all edges to a data.frame
+
+```{r}
+# edge attributes
+E(actor_relation_g)$same.dept
+E(actor_relation_g)$friendship
+
+# edge data.frame
+igraph::as_data_frame(actor_relation_g, what = "edges")
+```
+
+## Add vertex and edges
+
+Vertices and edges can be added to existing graph by `add_<vertices|edges>()` or `+ <vertices|edges>()`. Please be aware that vertices of added new edges must be from known vertices already in the graph.
+
+```{r}
+# add vertices 
+actor_relation_g %>% 
+    add_vertices(2, name=c("Lisa","Zack")) # the first argument is number of vertex
+
+actor_relation_g + vertices(c("Lisa","Zack"))
+```
+
+To add new edge, the new edge must be between known vertices already in the graph.
+
+```{r}
+# add connected edges (even number of vertices). 
+actor_relation_g %>% 
+    add_edges(c("Alice","Bob"))
+
+actor_relation_g + edge(c("Alice","Bob"))
+```
+
+The edges can be also be added by `+ path()`. The path is a `igraph.path` object that each element is connected to the next, but it is not a `IGRAPH` object.
+
+```{r}
+# add paths. The vertices must be from known vertices already in the graph 
+actor_relation_g + path("Alice","Bob","Cecil")
+```
+
+If a new vertex needs to be added to current graph, using add graph method instead.
+
+```{r}
+actor_relation_g + make_graph(c("Alice","Bob","Bob","Melisa")) # this create same path as above
+```
+
+## Delete vertex and edges
+
+Delete can be done by `delete_<vertices|edges>()` using either index or name of vertices\|edges.
+
+```{r}
+### remove the vertices whose age is younger than 30
+vertex_df = actor_relation_g %>% 
+    igraph::as_data_frame(what="vertices") %>% 
+        dplyr::as_tibble() %>% 
+        dplyr::mutate(index=row_number()) %>% 
+        dplyr::filter(age < 30)
+
+# remove vertices by index number 
+actor_relation_g %>% delete_vertices(vertex_df$index)
+
+# remove vertice by name 
+actor_relation_g %>% delete_vertices(vertex_df$name)
+```
+
+```{r}
+### remove the edges with friendship <= 1 
+edge_df = actor_relation_g %>% 
+    igraph::as_data_frame(what="edges") %>% 
+    dplyr::as_tibble() %>% 
+    mutate(index=row_number()) %>% 
+    mutate(name=paste(from,to,sep="|")) %>% 
+    filter(friendship <= 1)
+
+# remove vertice by index
+actor_relation_g %>% delete_edges(edge_df$index)
+
+# remove vertice by name 
+actor_relation_g %>% delete_edges(edge_df$name)
+```
+
+## Set/Delete the attributes of vertex and edges
+
+The attributes of vertices and edges can be added or deleted to existing graph by `set_vertex_attr()`/`set_edge_attr()` or `delete_vertex_attr()`/`delete_edge_attr()`.
+
+```{r add_attr}
+# add a new attr "relationship" for people in the same dept
+edge_df <-
+    actor_relation_g %>% igraph::as_data_frame(what = "edges") %>%
+    mutate(relationship = ifelse(same.dept, "collegue", NA))
+
+actor_relation_g %>%
+    set_edge_attr("relationship", which(!is.na(edge_df$relationship)), edge_df$relationship[!is.na(edge_df$relationship)]
+                  )
+
+```
+
+## Merge graph
+
+Graphs union/intersection is to merge two or more graphs into one graph using the shared the vertices.
+
+```{r merge}
+# create new graph
+g2 <- graph_from_literal("David"-+"Charlie"+-+"Lisa",
+                        "Lisa"+-+"David"+-"Jim",
+                        "Zack"+-"Esmeralda"-+"Bob",
+                        "Zack"+-"Charlie",
+                        "Lisa"+-"Lisa",
+                        "Bob"-+"Alice"+-"Esmeralda"
+                        )
+
+#### union graph
+g3 <- igraph::union(actor_relation_g,g2)
+
+#### graph intersection
+g4 <- igraph::intersection(actor_relation_g,g2)
+
+### plot new graphs
+par(mfrow=c(2,2)) 
+plot(actor_relation_g, edge.arrow.size=.4)
+plot(g2, edge.arrow.size=.4)
+plot(g3, edge.arrow.size=.4)
+plot(g4, edge.arrow.size=.4)
+```
+
+## Induce subgraph
+
+The subgraph can be induced by either vertex or edge names/index. The edge names are in the form `from|to`.
+
+```{r subgraph}
+# induce a subgraph using a list of vertices
+igraph::induced_subgraph(actor_relation_g, v=c("Alice","Bob","Cecil"))
+
+# induce a subgraph using edges
+igraph::subgraph.edges(actor_relation_g, c("Bob|Alice","David|Bob","Cecil|Alice"), delete.vertices = TRUE)
+
+# induce a subgraph using edges attribute (friendship score stronger than 3)
+e1 = E(actor_relation_g)[E(actor_relation_g)$friendship > 3]
+igraph::subgraph.edges(actor_relation_g, e1, delete.vertices = TRUE)
+```
+
+# Relationship between known nodes
+
+With a known graph, we sometimes want to know relationship between two known nodes. eg. are those two nodes adjacent? are those two nodes linked by a path? what are the path to connect them?
+
+```{r two_nodes}
+# check two nodes adjacent. return boolean
+are_adjacent(g3,"Jim", "Zack")
+
+# paths to connect 
+all_shortest_paths(g3, "Jim","Zack")$res[[1]] # return a igraph.vs
+
+all_simple_paths(g3, "Jim", "Zack") # return a list of igraph.vs
+
+all_simple_paths(g3, "Jim", "Zack", mode = "all")  # regardless of direction
+```
+
+In next post, I will discuss how to use `{igraph}` package to measure and cluster network and use the `IGRAPH` object to its fullest potential.

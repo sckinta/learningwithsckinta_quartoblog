@@ -1,0 +1,15 @@
+---
+listing:
+  contents: posts
+  sort: "date desc"
+  type: default
+  categories: true
+  filter-ui: true
+  fields: [date, title, reading-time, description, image, categories]
+  feed: true
+  image-align: right
+  image-placeholder: https://www.savethestudent.org/uploads/start-blog.jpg
+  page-size: 10
+page-layout: full
+title-block-banner: true
+---

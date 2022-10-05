@@ -1,0 +1,25 @@
+---
+image: https://media-exp1.licdn.com/dms/image/C4E03AQH2-cbjQTrAKw/profile-displayphoto-shrink_800_800/0/1516780179563?e=1667433600&v=beta&t=ycj2c4SfbINkl4kwmciBOz0itQXDqzdxYhCp82HZ0-I
+about:
+  template: jolla
+  links:
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/chun-su-a031087b/
+    - icon: github
+      text: Github
+      href: https://github.com/sckinta
+    - icon: email
+      text: Email
+      href: mailto:sckinta@gmail.com
+    - icon: google-scholar
+      text: Google Scholar
+      href: https://scholar.google.com/citations?user=b4ozof8AAAAJ&hl=en
+    - icon: fa-address-book
+      text: CV
+      href: https://sckinta.github.io/datadrivencv_cs/cv_render.html
+---
+
+# Chun Su
+
+Hi! Thank you for stopping by! I am a computational biologist at the Amgen Inc., and volunteer as a co-organizer at [Rladies Philly](https://www.rladiesphilly.org/). Originally from China, I came to the U.S. in 2011 and completed my PhD in Biology at the University of Virginia in 2017. Starting as a Perl programmer, I picked up R and Python by taking online courses and attending local meetup workshops. I enjoy learning new programming skills and believe learning is a life-time mission. I would like to dedicate this personal website to sharing the study notes and projects in my learning journey and hopefully it will help or motivate other self-learners.

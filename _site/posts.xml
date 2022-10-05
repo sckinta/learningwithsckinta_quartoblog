@@ -1,0 +1,616 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Learning with sckinta</title>
+<link>https://learniningwithsckinta.netlify.app/posts.html</link>
+<atom:link href="https://learniningwithsckinta.netlify.app/posts.xml" rel="self" type="application/rss+xml"/>
+<description>This is Chun Su's personal blog</description>
+<generator>quarto-1.1.251</generator>
+<lastBuildDate>Thu, 11 Jul 2019 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>Network Analysis in R - Part 1</title>
+  <dc:creator>Chun Su</dc:creator>
+  <link>https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1.html</link>
+  <description><![CDATA[ 
+
+
+
+<p>Network analysis, also called graph analysis, is to study the complexity of the inter-relationships between actors of all sorts and provides an architectural view of individual actor connections.</p>
+<p>It has been applied to many fields, like social network and gene network, and useful for any systematic studies on individual relationship <sup>1</sup>.</p>
+<p>I will create a three part series <sup>2</sup> of network analysis and visualization using R packages <code>{igraph}</code> and <code>{ggraph}</code>. In this post, I will focus on general introduction of the terminology and R objects used in network analysis.</p>
+<section id="glossaries" class="level1">
+<h1>Glossaries</h1>
+<ul>
+<li><p><strong>Vertex</strong>: is the node of network.</p></li>
+<li><p><strong>Edge</strong>: the connection of notes, sometimes called “linked”. The edge can be <strong>directed</strong> or <strong>undirected</strong>, depending on whether the distinction between source and target is meaningful.</p></li>
+<li><p><strong>Graph</strong>: constitute of vertex and edges, which represents the whole inter-relationship of nodes. The <strong>subgraph</strong>, from the other hand, represents the inter-relationship of a subset of nodes.</p></li>
+<li><p><strong>Cliques</strong>: Fully connected sub-graphs of a graph in which the every vertex connects with every other vertex.</p></li>
+<li><p><strong>Degree</strong> : the number of adjacent vertex.</p></li>
+<li><p><strong>Order</strong> : how far away from one vertex to another. order 0 is always v itself, order 1 is v plus its immediate neighbors, order 2 is order 1 plus the immediate neighbors of the vertices in order 1, etc.</p></li>
+<li><p><strong>Attribute</strong>: attributes are associated with either vertex or edge. By default, the <code>name</code> is the mandatory attribute for vertex and edge. If the edges have a magnitude attribute, the graph is considered <strong>weighted</strong>.</p></li>
+<li><p><strong>Bipartite networks</strong>: two-mode networks, in which there are two types of vertex and connections are only allowed between different types of nodes. Thus, <code>type</code> is a mandatory vertex attribute for bipartite networks. There are two types of common used bipartite networks:</p>
+<ol type="1">
+<li><p>Two types of vertex are annotated either “<strong>individual</strong>” or “<strong>group</strong>” to which the individual belong to. This is also called “affiliation network”.</p></li>
+<li><p>the network consistent of two “<strong>parallel</strong>” types of vertex, in which type 1 only interact with type 2 while no interactions happen within the same type.</p></li>
+</ol></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;">library</span>(igraph)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;">library</span>(tidyverse)</span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;">library</span>(ggraph)</span>
+<span id="cb1-4"><span class="fu" style="color: #4758AB;">library</span>(gridExtra)</span></code></pre></div>
+</div>
+</section>
+<section id="igraph-object" class="level1">
+<h1>IGRAPH object</h1>
+<p><strong>IGRAPH object</strong> is a R object defined in <code>igraph</code> package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;">make_graph</span>(letters[<span class="dv" style="color: #AD0000;">1</span><span class="sc" style="color: #5E5E5E;">:</span><span class="dv" style="color: #AD0000;">10</span>], <span class="at" style="color: #657422;">directed =</span> T)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH be34cdf DN-- 10 5 -- 
++ attr: name (v/c)
++ edges from be34cdf (vertex names):
+[1] a-&gt;b c-&gt;d e-&gt;f g-&gt;h i-&gt;j</code></pre>
+</div>
+</div>
+<p>The first line of IGRAPH <code>IGRAPH dca479d DN-- 10 5 --</code> means a graph with id <code>dca479d</code> is <em>directed</em> (<code>D</code>) and <em>named</em> (<code>N</code>) containing <code>10</code> <em>vertices</em> and <code>5</code> <em>edges</em>.</p>
+<p>The second line <code>+ attr: name (v/c)</code> indicates the attributes associated with vertex (<code>v</code>) and/or edge (<code>e</code>). In our example, only vertex has attribute <code>name</code> which is a character variable (<code>c</code>).</p>
+<p>The third and fourth line of IGRAPH literally print what edges are. In our case, since graph is directed, the arrow shows the direction of edge.</p>
+<p>It is worth to mention that the name of edges can be listed by vertices name in a <code>from|to</code> format. In most cases, names are the default attributes for vertex and can be used just like index to extract information directly from <code>IGRAPH</code> object. We will discuss this in detail in “graph subset” session.</p>
+</section>
+<section id="igraph-object-manipulation" class="level1">
+<h1>IGRAPH object manipulation</h1>
+<section id="create-a-graph" class="level2">
+<h2 class="anchored" data-anchor-id="create-a-graph">Create a graph</h2>
+<p>There are many ways to create graph from scratch.</p>
+<ul>
+<li><p>Easy graph:<code>graph_from_literal</code>, <code>make_graph</code></p></li>
+<li><p>Create from user data: <code>graph_from_edgelist</code>, <code>graph_from_adjacency_matrix</code>, <code>graph_from_data_frame</code></p></li>
+<li><p>Random graphs: <code>sample_gnp</code>, <code>sample_gnm</code>, <code>sample_pa</code>, <code>sample_smallworld</code>, etc.</p></li>
+</ul>
+<p>The following are a few examples of ways frequently used by me to make graph .</p>
+<section id="edge-list-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="edge-list-matrix">edge list matrix</h3>
+<p>The example below generates a directed graph from a list of vertex pair (edge)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">edge_list <span class="ot" style="color: #003B4F;">&lt;-</span></span>
+<span id="cb4-2">    <span class="fu" style="color: #4758AB;">data.frame</span>(<span class="at" style="color: #657422;">from =</span> <span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">2</span>, <span class="dv" style="color: #AD0000;">2</span>, <span class="dv" style="color: #AD0000;">3</span>, <span class="dv" style="color: #AD0000;">4</span>), <span class="at" style="color: #657422;">to =</span> <span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">2</span>, <span class="dv" style="color: #AD0000;">3</span>, <span class="dv" style="color: #AD0000;">4</span>, <span class="dv" style="color: #AD0000;">2</span>, <span class="dv" style="color: #AD0000;">1</span>)) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb4-3">    <span class="fu" style="color: #4758AB;">as.matrix</span>()</span>
+<span id="cb4-4"></span>
+<span id="cb4-5">g <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">graph_from_edgelist</span>(edge_list,<span class="at" style="color: #657422;">directed =</span> <span class="cn" style="color: #8f5902;">TRUE</span>)</span>
+<span id="cb4-6"></span>
+<span id="cb4-7">g</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 59ad3e6 D--- 4 5 -- 
++ edges from 59ad3e6:
+[1] 1-&gt;2 2-&gt;3 2-&gt;4 3-&gt;2 4-&gt;1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;">plot</span>(g)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="one-mode-graph-from-a-vector-of-edge" class="level3">
+<h3 class="anchored" data-anchor-id="one-mode-graph-from-a-vector-of-edge">one-mode graph from a vector of edge</h3>
+<p>If the edge is given in a single vector, the default <code>make_graph</code> will use the order of vector to make one-mode graph. It means that the 1st edge points from the 1st element to the 2nd element, the 2nd edge from the 3rd element to the 4th element, etc. If the length of vector is odd number, it will end with last element connecting back to the 1st element, and throw a warning.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">g <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">make_graph</span>(letters[<span class="dv" style="color: #AD0000;">1</span><span class="sc" style="color: #5E5E5E;">:</span><span class="dv" style="color: #AD0000;">10</span>], <span class="at" style="color: #657422;">directed =</span> T)</span>
+<span id="cb7-2">g</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 12185c3 DN-- 10 5 -- 
++ attr: name (v/c)
++ edges from 12185c3 (vertex names):
+[1] a-&gt;b c-&gt;d e-&gt;f g-&gt;h i-&gt;j</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;">plot</span>(g)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="using-adjacent-matrix" class="level3">
+<h3 class="anchored" data-anchor-id="using-adjacent-matrix">using adjacent matrix</h3>
+<p>The example below generates a undirected graph from a binary matrix, in which nodes are matrix colname and rowname.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;">set.seed</span>(<span class="dv" style="color: #AD0000;">123</span>)</span>
+<span id="cb10-2"></span>
+<span id="cb10-3">adj_matrix <span class="ot" style="color: #003B4F;">&lt;-</span></span>
+<span id="cb10-4">    <span class="fu" style="color: #4758AB;">matrix</span>(<span class="fu" style="color: #4758AB;">sample</span>(<span class="dv" style="color: #AD0000;">0</span><span class="sc" style="color: #5E5E5E;">:</span><span class="dv" style="color: #AD0000;">1</span>, <span class="dv" style="color: #AD0000;">100</span>, <span class="at" style="color: #657422;">replace =</span> <span class="cn" style="color: #8f5902;">TRUE</span>, <span class="at" style="color: #657422;">prob =</span> <span class="fu" style="color: #4758AB;">c</span>(<span class="fl" style="color: #AD0000;">0.8</span>, <span class="fl" style="color: #AD0000;">0.1</span>)), <span class="at" style="color: #657422;">nc =</span> <span class="dv" style="color: #AD0000;">10</span>)</span>
+<span id="cb10-5"></span>
+<span id="cb10-6"><span class="fu" style="color: #4758AB;">colnames</span>(adj_matrix) <span class="ot" style="color: #003B4F;">&lt;-</span> letters[<span class="dv" style="color: #AD0000;">1</span><span class="sc" style="color: #5E5E5E;">:</span><span class="dv" style="color: #AD0000;">10</span>]</span>
+<span id="cb10-7"></span>
+<span id="cb10-8"><span class="fu" style="color: #4758AB;">rownames</span>(adj_matrix) <span class="ot" style="color: #003B4F;">&lt;-</span> letters[<span class="dv" style="color: #AD0000;">1</span><span class="sc" style="color: #5E5E5E;">:</span><span class="dv" style="color: #AD0000;">10</span>]</span>
+<span id="cb10-9"></span>
+<span id="cb10-10">adj_matrix</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  a b c d e f g h i j
+a 0 1 1 1 0 0 0 0 0 0
+b 0 0 0 1 0 0 0 0 0 0
+c 0 0 0 0 0 0 0 0 0 0
+d 0 0 1 0 0 0 0 0 0 0
+e 1 0 0 0 0 0 0 0 0 0
+f 0 1 0 0 0 0 0 0 0 0
+g 0 0 0 0 0 0 0 0 1 0
+h 1 0 0 0 0 0 0 0 1 0
+i 0 0 0 0 0 1 0 0 0 0
+j 0 1 0 0 0 0 0 0 0 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">g <span class="ot" style="color: #003B4F;">&lt;-</span></span>
+<span id="cb12-2">    <span class="fu" style="color: #4758AB;">graph_from_adjacency_matrix</span>(adj_matrix, <span class="at" style="color: #657422;">mode =</span> <span class="st" style="color: #20794D;">"undirected"</span>, <span class="at" style="color: #657422;">weighted =</span> T)</span>
+<span id="cb12-3"></span>
+<span id="cb12-4">g</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 81fe3c0 UNW- 10 12 -- 
++ attr: name (v/c), weight (e/n)
++ edges from 81fe3c0 (vertex names):
+ [1] a--b a--c a--d a--e a--h b--d b--f b--j c--d f--i g--i h--i</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;">plot</span>(g)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>There are other modes <sup>3</sup> available with details.</p>
+</section>
+<section id="using-named-data.frame" class="level3">
+<h3 class="anchored" data-anchor-id="using-named-data.frame">Using named data.frame</h3>
+<p>This is my favorite. The graph generated from <code>data.frame</code> can add all attributes at once. The below example is from official website. The attributes for nodes (<code>actors</code>) are <code>age</code> and <code>gender</code>, and edge (<code>relationship</code>) attributes include <code>same.dept</code>, <code>friendship</code> and <code>advice</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">actors <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">data.frame</span>(</span>
+<span id="cb15-2">  <span class="at" style="color: #657422;">name=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>, <span class="st" style="color: #20794D;">"Bob"</span>, <span class="st" style="color: #20794D;">"Cecil"</span>, <span class="st" style="color: #20794D;">"David"</span>,<span class="st" style="color: #20794D;">"Esmeralda"</span>),</span>
+<span id="cb15-3">  <span class="at" style="color: #657422;">age=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">48</span>,<span class="dv" style="color: #AD0000;">33</span>,<span class="dv" style="color: #AD0000;">45</span>,<span class="dv" style="color: #AD0000;">34</span>,<span class="dv" style="color: #AD0000;">21</span>),</span>
+<span id="cb15-4">  <span class="at" style="color: #657422;">gender=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"F"</span>,<span class="st" style="color: #20794D;">"M"</span>,<span class="st" style="color: #20794D;">"F"</span>,<span class="st" style="color: #20794D;">"M"</span>,<span class="st" style="color: #20794D;">"F"</span>))</span>
+<span id="cb15-5"></span>
+<span id="cb15-6">relations <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">data.frame</span>(</span>
+<span id="cb15-7">  <span class="at" style="color: #657422;">from=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Bob"</span>, <span class="st" style="color: #20794D;">"Cecil"</span>, <span class="st" style="color: #20794D;">"Cecil"</span>, <span class="st" style="color: #20794D;">"David"</span>,<span class="st" style="color: #20794D;">"David"</span>, <span class="st" style="color: #20794D;">"Esmeralda"</span>),</span>
+<span id="cb15-8">  <span class="at" style="color: #657422;">to=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>, <span class="st" style="color: #20794D;">"Bob"</span>, <span class="st" style="color: #20794D;">"Alice"</span>, <span class="st" style="color: #20794D;">"Alice"</span>, <span class="st" style="color: #20794D;">"Bob"</span>, <span class="st" style="color: #20794D;">"Alice"</span>),</span>
+<span id="cb15-9">  <span class="at" style="color: #657422;">same.dept=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="cn" style="color: #8f5902;">FALSE</span>,<span class="cn" style="color: #8f5902;">FALSE</span>,<span class="cn" style="color: #8f5902;">TRUE</span>,<span class="cn" style="color: #8f5902;">FALSE</span>,<span class="cn" style="color: #8f5902;">FALSE</span>,<span class="cn" style="color: #8f5902;">TRUE</span>),</span>
+<span id="cb15-10">  <span class="at" style="color: #657422;">friendship=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">4</span>,<span class="dv" style="color: #AD0000;">5</span>,<span class="dv" style="color: #AD0000;">5</span>,<span class="dv" style="color: #AD0000;">2</span>,<span class="dv" style="color: #AD0000;">1</span>,<span class="dv" style="color: #AD0000;">1</span>), </span>
+<span id="cb15-11">  <span class="at" style="color: #657422;">advice=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">4</span>,<span class="dv" style="color: #AD0000;">5</span>,<span class="dv" style="color: #AD0000;">5</span>,<span class="dv" style="color: #AD0000;">4</span>,<span class="dv" style="color: #AD0000;">2</span>,<span class="dv" style="color: #AD0000;">3</span>)</span>
+<span id="cb15-12">  )</span>
+<span id="cb15-13"></span>
+<span id="cb15-14">actor_relation_g <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">graph_from_data_frame</span>(relations, <span class="at" style="color: #657422;">directed=</span><span class="cn" style="color: #8f5902;">TRUE</span>, <span class="at" style="color: #657422;">vertices=</span>actors)</span>
+<span id="cb15-15"></span>
+<span id="cb15-16">actor_relation_g</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 05d16d7 DN-- 5 6 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 05d16d7 (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="fu" style="color: #4758AB;">plot</span>(actor_relation_g)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/graphDataFrame-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="create-random-graph" class="level3">
+<h3 class="anchored" data-anchor-id="create-random-graph">Create random graph</h3>
+<p>Random graph generation is useful when it comes to simulation.</p>
+<ul>
+<li><p><code>sample_gnp</code> and <code>sample_gnm</code> generate random graph by assuming the same constant probability for every possible edge.</p>
+<ul>
+<li>The required parameters for <em>gnp</em> include: 1) The number of vertices in the graph <code>n</code> and 2) The probability for drawing an edge between two arbitrary vertices <code>p</code></li>
+</ul></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="co" style="color: #5E5E5E;"># sample 10 vertex, every possible edge is created with the same constant probability 0.3</span></span>
+<span id="cb18-2"><span class="fu" style="color: #4758AB;">set.seed</span>(<span class="dv" style="color: #AD0000;">12</span>)</span>
+<span id="cb18-3">gr <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">sample_gnp</span>(<span class="dv" style="color: #AD0000;">10</span>, <span class="fl" style="color: #AD0000;">0.3</span>)</span>
+<span id="cb18-4">gr</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH eaef67a U--- 10 11 -- Erdos-Renyi (gnp) graph
++ attr: name (g/c), type (g/c), loops (g/l), p (g/n)
++ edges from eaef67a:
+ [1] 2-- 5 3-- 5 5-- 6 4-- 7 3-- 8 6-- 8 1-- 9 3-- 9 8-- 9 3--10 8--10</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><span class="fu" style="color: #4758AB;">plot</span>(gr)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<pre><code>-  The required parameters for *gmp* include: 1) The number of vertices in the graph `n` and 2) The number of edges in the graph `m`.</code></pre>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><span class="co" style="color: #5E5E5E;"># sample 10 vertex, create a 15-edge graph</span></span>
+<span id="cb22-2"><span class="fu" style="color: #4758AB;">set.seed</span>(<span class="dv" style="color: #AD0000;">123</span>)</span>
+<span id="cb22-3">gr <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">sample_gnm</span>(<span class="dv" style="color: #AD0000;">10</span>, <span class="dv" style="color: #AD0000;">15</span>)</span>
+<span id="cb22-4">gr</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH a2ec496 U--- 10 15 -- Erdos-Renyi (gnm) graph
++ attr: name (g/c), type (g/c), loops (g/l), m (g/n)
++ edges from a2ec496:
+ [1] 1-- 2 1-- 4 2-- 4 3-- 4 5-- 6 2-- 7 3-- 7 5-- 7 2-- 8 3-- 8 6-- 8 1-- 9
+[13] 4-- 9 5--10 9--10</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><span class="fu" style="color: #4758AB;">plot</span>(gr)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<ul>
+<li>Random scale free network, which means a network whose degree of nodes distribution follows a power law. <code>sample_pa</code> generates scale-free graphs according to the Barabasi-Albert model. We start with a single vertex and no edges in the first time step. Then we add one vertex in each time step and the new vertex initiates some edges to old vertices. The probability that an old vertex is chosen is given by <img src="https://latex.codecogs.com/png.latex?p(i)%20~%20k_i%20*%20power%20+%20zero.appeal"></li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><span class="fu" style="color: #4758AB;">set.seed</span>(<span class="dv" style="color: #AD0000;">123</span>)</span>
+<span id="cb25-2"></span>
+<span id="cb25-3">gr <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">sample_pa</span>(<span class="dv" style="color: #AD0000;">100</span>, <span class="at" style="color: #657422;">power =</span> <span class="dv" style="color: #AD0000;">2</span>)</span>
+<span id="cb25-4"></span>
+<span id="cb25-5"><span class="fu" style="color: #4758AB;">plot</span>(g, <span class="at" style="color: #657422;">vertex.label=</span> <span class="cn" style="color: #8f5902;">NA</span>, <span class="at" style="color: #657422;">edge.arrow.size=</span><span class="fl" style="color: #AD0000;">0.02</span>,<span class="at" style="color: #657422;">vertex.size =</span> <span class="fl" style="color: #AD0000;">0.5</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><span class="fu" style="color: #4758AB;">plot</span>(<span class="fu" style="color: #4758AB;">density</span>(<span class="fu" style="color: #4758AB;">degree_distribution</span>(gr)))</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>There are many other random graphs using different models. To find more, try <code>?igraph::sample_[TAB]</code>.</p>
+</section>
+</section>
+<section id="extract-vertexedge-and-their-attributes" class="level2">
+<h2 class="anchored" data-anchor-id="extract-vertexedge-and-their-attributes">Extract vertex/edge and their attributes</h2>
+<p>To get vertex list and their attributes from graph object, we use <code>V(graph)$"&lt;attribute_name&gt;"</code> to convert graph object to vector. Using IGRAPH <code>actor_relation_g</code> created in previous chunk as example, we will get actor node (<code>name</code>), <code>age</code> (attribute 1) and <code>gender</code> (attribute 2)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><span class="fu" style="color: #4758AB;">V</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>name</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Alice"     "Bob"       "Cecil"     "David"     "Esmeralda"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><span class="fu" style="color: #4758AB;">V</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>age</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 48 33 45 34 21</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><span class="fu" style="color: #4758AB;">V</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>gender</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "F" "M" "F" "M" "F"</code></pre>
+</div>
+</div>
+<p>We can also get all the vertex attributes to a data.frame using <code>igraph::as_data_frame()</code></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1">igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_data_frame</span>(actor_relation_g, <span class="at" style="color: #657422;">what =</span> <span class="st" style="color: #20794D;">"vertices"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               name age gender
+Alice         Alice  48      F
+Bob             Bob  33      M
+Cecil         Cecil  45      F
+David         David  34      M
+Esmeralda Esmeralda  21      F</code></pre>
+</div>
+</div>
+<p>Similarly, to get edge list and their attributes from graph object, we use <code>E(graph)$"&lt;attribute_name&gt;"</code> to convert graph object to vector. OR using <code>igraph::as_data_frame()</code> to convert all edges to a data.frame</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><span class="co" style="color: #5E5E5E;"># edge attributes</span></span>
+<span id="cb35-2"><span class="fu" style="color: #4758AB;">E</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>same.dept</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE FALSE  TRUE FALSE FALSE  TRUE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><span class="fu" style="color: #4758AB;">E</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>friendship</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4 5 5 2 1 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><span class="co" style="color: #5E5E5E;"># edge data.frame</span></span>
+<span id="cb39-2">igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_data_frame</span>(actor_relation_g, <span class="at" style="color: #657422;">what =</span> <span class="st" style="color: #20794D;">"edges"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       from    to same.dept friendship advice
+1       Bob Alice     FALSE          4      4
+2     Cecil   Bob     FALSE          5      5
+3     Cecil Alice      TRUE          5      5
+4     David Alice     FALSE          2      4
+5     David   Bob     FALSE          1      2
+6 Esmeralda Alice      TRUE          1      3</code></pre>
+</div>
+</div>
+</section>
+<section id="add-vertex-and-edges" class="level2">
+<h2 class="anchored" data-anchor-id="add-vertex-and-edges">Add vertex and edges</h2>
+<p>Vertices and edges can be added to existing graph by <code>add_&lt;vertices|edges&gt;()</code> or <code>+ &lt;vertices|edges&gt;()</code>. Please be aware that vertices of added new edges must be from known vertices already in the graph.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><span class="co" style="color: #5E5E5E;"># add vertices </span></span>
+<span id="cb41-2">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb41-3">    <span class="fu" style="color: #4758AB;">add_vertices</span>(<span class="dv" style="color: #AD0000;">2</span>, <span class="at" style="color: #657422;">name=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Lisa"</span>,<span class="st" style="color: #20794D;">"Zack"</span>)) <span class="co" style="color: #5E5E5E;"># the first argument is number of vertex</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 80dfeea DN-- 7 6 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 80dfeea (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1">actor_relation_g <span class="sc" style="color: #5E5E5E;">+</span> <span class="fu" style="color: #4758AB;">vertices</span>(<span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Lisa"</span>,<span class="st" style="color: #20794D;">"Zack"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH de6630f DN-- 7 6 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from de6630f (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
+</div>
+</div>
+<p>To add new edge, the new edge must be between known vertices already in the graph.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><span class="co" style="color: #5E5E5E;"># add connected edges (even number of vertices). </span></span>
+<span id="cb45-2">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb45-3">    <span class="fu" style="color: #4758AB;">add_edges</span>(<span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>,<span class="st" style="color: #20794D;">"Bob"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH d7c4121 DN-- 5 7 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from d7c4121 (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice Alice    -&gt;Bob  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1">actor_relation_g <span class="sc" style="color: #5E5E5E;">+</span> <span class="fu" style="color: #4758AB;">edge</span>(<span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>,<span class="st" style="color: #20794D;">"Bob"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH ad4c43b DN-- 5 7 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from ad4c43b (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice Alice    -&gt;Bob  </code></pre>
+</div>
+</div>
+<p>The edges can be also be added by <code>+ path()</code>. The path is a <code>igraph.path</code> object that each element is connected to the next, but it is not a <code>IGRAPH</code> object.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><span class="co" style="color: #5E5E5E;"># add paths. The vertices must be from known vertices already in the graph </span></span>
+<span id="cb49-2">actor_relation_g <span class="sc" style="color: #5E5E5E;">+</span> <span class="fu" style="color: #4758AB;">path</span>(<span class="st" style="color: #20794D;">"Alice"</span>,<span class="st" style="color: #20794D;">"Bob"</span>,<span class="st" style="color: #20794D;">"Cecil"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 48d4748 DN-- 5 8 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 48d4748 (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice Alice    -&gt;Bob   Bob      -&gt;Cecil</code></pre>
+</div>
+</div>
+<p>If a new vertex needs to be added to current graph, using add graph method instead.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1">actor_relation_g <span class="sc" style="color: #5E5E5E;">+</span> <span class="fu" style="color: #4758AB;">make_graph</span>(<span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>,<span class="st" style="color: #20794D;">"Bob"</span>,<span class="st" style="color: #20794D;">"Bob"</span>,<span class="st" style="color: #20794D;">"Melisa"</span>)) <span class="co" style="color: #5E5E5E;"># this create same path as above</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH def4db0 DN-- 6 8 -- 
++ attr: age (v/n), gender (v/c), name (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from def4db0 (vertex names):
+[1] Esmeralda-&gt;Alice  David    -&gt;Bob    David    -&gt;Alice  Cecil    -&gt;Bob   
+[5] Cecil    -&gt;Alice  Bob      -&gt;Melisa Bob      -&gt;Alice  Alice    -&gt;Bob   </code></pre>
+</div>
+</div>
+</section>
+<section id="delete-vertex-and-edges" class="level2">
+<h2 class="anchored" data-anchor-id="delete-vertex-and-edges">Delete vertex and edges</h2>
+<p>Delete can be done by <code>delete_&lt;vertices|edges&gt;()</code> using either index or name of vertices|edges.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><span class="do" style="color: #5E5E5E;
+font-style: italic;">### remove the vertices whose age is younger than 30</span></span>
+<span id="cb53-2">vertex_df <span class="ot" style="color: #003B4F;">=</span> actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb53-3">    igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_data_frame</span>(<span class="at" style="color: #657422;">what=</span><span class="st" style="color: #20794D;">"vertices"</span>) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb53-4">        dplyr<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_tibble</span>() <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb53-5">        dplyr<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">mutate</span>(<span class="at" style="color: #657422;">index=</span><span class="fu" style="color: #4758AB;">row_number</span>()) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb53-6">        dplyr<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">filter</span>(age <span class="sc" style="color: #5E5E5E;">&lt;</span> <span class="dv" style="color: #AD0000;">30</span>)</span>
+<span id="cb53-7"></span>
+<span id="cb53-8"><span class="co" style="color: #5E5E5E;"># remove vertices by index number </span></span>
+<span id="cb53-9">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> <span class="fu" style="color: #4758AB;">delete_vertices</span>(vertex_df<span class="sc" style="color: #5E5E5E;">$</span>index)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 82b2916 DN-- 4 5 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 82b2916 (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice David-&gt;Bob  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb55" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><span class="co" style="color: #5E5E5E;"># remove vertice by name </span></span>
+<span id="cb55-2">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> <span class="fu" style="color: #4758AB;">delete_vertices</span>(vertex_df<span class="sc" style="color: #5E5E5E;">$</span>name)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 464f2cc DN-- 4 5 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 464f2cc (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice David-&gt;Bob  </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><span class="do" style="color: #5E5E5E;
+font-style: italic;">### remove the edges with friendship &lt;= 1 </span></span>
+<span id="cb57-2">edge_df <span class="ot" style="color: #003B4F;">=</span> actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb57-3">    igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_data_frame</span>(<span class="at" style="color: #657422;">what=</span><span class="st" style="color: #20794D;">"edges"</span>) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb57-4">    dplyr<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_tibble</span>() <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb57-5">    <span class="fu" style="color: #4758AB;">mutate</span>(<span class="at" style="color: #657422;">index=</span><span class="fu" style="color: #4758AB;">row_number</span>()) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb57-6">    <span class="fu" style="color: #4758AB;">mutate</span>(<span class="at" style="color: #657422;">name=</span><span class="fu" style="color: #4758AB;">paste</span>(from,to,<span class="at" style="color: #657422;">sep=</span><span class="st" style="color: #20794D;">"|"</span>)) <span class="sc" style="color: #5E5E5E;">%&gt;%</span> </span>
+<span id="cb57-7">    <span class="fu" style="color: #4758AB;">filter</span>(friendship <span class="sc" style="color: #5E5E5E;">&lt;=</span> <span class="dv" style="color: #AD0000;">1</span>)</span>
+<span id="cb57-8"></span>
+<span id="cb57-9"><span class="co" style="color: #5E5E5E;"># remove vertice by index</span></span>
+<span id="cb57-10">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> <span class="fu" style="color: #4758AB;">delete_edges</span>(edge_df<span class="sc" style="color: #5E5E5E;">$</span>index)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 8643b08 DN-- 5 4 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 8643b08 (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb59" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><span class="co" style="color: #5E5E5E;"># remove vertice by name </span></span>
+<span id="cb59-2">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> <span class="fu" style="color: #4758AB;">delete_edges</span>(edge_df<span class="sc" style="color: #5E5E5E;">$</span>name)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 05c4850 DN-- 5 4 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 05c4850 (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice</code></pre>
+</div>
+</div>
+</section>
+<section id="setdelete-the-attributes-of-vertex-and-edges" class="level2">
+<h2 class="anchored" data-anchor-id="setdelete-the-attributes-of-vertex-and-edges">Set/Delete the attributes of vertex and edges</h2>
+<p>The attributes of vertices and edges can be added or deleted to existing graph by <code>set_vertex_attr()</code>/<code>set_edge_attr()</code> or <code>delete_vertex_attr()</code>/<code>delete_edge_attr()</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><span class="co" style="color: #5E5E5E;"># add a new attr "relationship" for people in the same dept</span></span>
+<span id="cb61-2">edge_df <span class="ot" style="color: #003B4F;">&lt;-</span></span>
+<span id="cb61-3">    actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span> igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">as_data_frame</span>(<span class="at" style="color: #657422;">what =</span> <span class="st" style="color: #20794D;">"edges"</span>) <span class="sc" style="color: #5E5E5E;">%&gt;%</span></span>
+<span id="cb61-4">    <span class="fu" style="color: #4758AB;">mutate</span>(<span class="at" style="color: #657422;">relationship =</span> <span class="fu" style="color: #4758AB;">ifelse</span>(same.dept, <span class="st" style="color: #20794D;">"collegue"</span>, <span class="cn" style="color: #8f5902;">NA</span>))</span>
+<span id="cb61-5"></span>
+<span id="cb61-6">actor_relation_g <span class="sc" style="color: #5E5E5E;">%&gt;%</span></span>
+<span id="cb61-7">    <span class="fu" style="color: #4758AB;">set_edge_attr</span>(<span class="st" style="color: #20794D;">"relationship"</span>, <span class="fu" style="color: #4758AB;">which</span>(<span class="sc" style="color: #5E5E5E;">!</span><span class="fu" style="color: #4758AB;">is.na</span>(edge_df<span class="sc" style="color: #5E5E5E;">$</span>relationship)), edge_df<span class="sc" style="color: #5E5E5E;">$</span>relationship[<span class="sc" style="color: #5E5E5E;">!</span><span class="fu" style="color: #4758AB;">is.na</span>(edge_df<span class="sc" style="color: #5E5E5E;">$</span>relationship)]</span>
+<span id="cb61-8">                  )</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 05d16d7 DN-- 5 6 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n), relationship (e/c)
++ edges from 05d16d7 (vertex names):
+[1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
+[5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
+</div>
+</div>
+</section>
+<section id="merge-graph" class="level2">
+<h2 class="anchored" data-anchor-id="merge-graph">Merge graph</h2>
+<p>Graphs union/intersection is to merge two or more graphs into one graph using the shared the vertices.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb63" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><span class="co" style="color: #5E5E5E;"># create new graph</span></span>
+<span id="cb63-2">g2 <span class="ot" style="color: #003B4F;">&lt;-</span> <span class="fu" style="color: #4758AB;">graph_from_literal</span>(<span class="st" style="color: #20794D;">"David"</span><span class="sc" style="color: #5E5E5E;">-+</span><span class="st" style="color: #20794D;">"Charlie"</span><span class="sc" style="color: #5E5E5E;">+-+</span><span class="st" style="color: #20794D;">"Lisa"</span>,</span>
+<span id="cb63-3">                        <span class="st" style="color: #20794D;">"Lisa"</span><span class="sc" style="color: #5E5E5E;">+-+</span><span class="st" style="color: #20794D;">"David"</span><span class="sc" style="color: #5E5E5E;">+-</span><span class="st" style="color: #20794D;">"Jim"</span>,</span>
+<span id="cb63-4">                        <span class="st" style="color: #20794D;">"Zack"</span><span class="sc" style="color: #5E5E5E;">+-</span><span class="st" style="color: #20794D;">"Esmeralda"</span><span class="sc" style="color: #5E5E5E;">-+</span><span class="st" style="color: #20794D;">"Bob"</span>,</span>
+<span id="cb63-5">                        <span class="st" style="color: #20794D;">"Zack"</span><span class="sc" style="color: #5E5E5E;">+-</span><span class="st" style="color: #20794D;">"Charlie"</span>,</span>
+<span id="cb63-6">                        <span class="st" style="color: #20794D;">"Lisa"</span><span class="sc" style="color: #5E5E5E;">+-</span><span class="st" style="color: #20794D;">"Lisa"</span>,</span>
+<span id="cb63-7">                        <span class="st" style="color: #20794D;">"Bob"</span><span class="sc" style="color: #5E5E5E;">-+</span><span class="st" style="color: #20794D;">"Alice"</span><span class="sc" style="color: #5E5E5E;">+-</span><span class="st" style="color: #20794D;">"Esmeralda"</span></span>
+<span id="cb63-8">                        )</span>
+<span id="cb63-9"></span>
+<span id="cb63-10"><span class="do" style="color: #5E5E5E;
+font-style: italic;">#### union graph</span></span>
+<span id="cb63-11">g3 <span class="ot" style="color: #003B4F;">&lt;-</span> igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">union</span>(actor_relation_g,g2)</span>
+<span id="cb63-12"></span>
+<span id="cb63-13"><span class="do" style="color: #5E5E5E;
+font-style: italic;">#### graph intersection</span></span>
+<span id="cb63-14">g4 <span class="ot" style="color: #003B4F;">&lt;-</span> igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">intersection</span>(actor_relation_g,g2)</span>
+<span id="cb63-15"></span>
+<span id="cb63-16"><span class="do" style="color: #5E5E5E;
+font-style: italic;">### plot new graphs</span></span>
+<span id="cb63-17"><span class="fu" style="color: #4758AB;">par</span>(<span class="at" style="color: #657422;">mfrow=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="dv" style="color: #AD0000;">2</span>,<span class="dv" style="color: #AD0000;">2</span>)) </span>
+<span id="cb63-18"><span class="fu" style="color: #4758AB;">plot</span>(actor_relation_g, <span class="at" style="color: #657422;">edge.arrow.size=</span>.<span class="dv" style="color: #AD0000;">4</span>)</span>
+<span id="cb63-19"><span class="fu" style="color: #4758AB;">plot</span>(g2, <span class="at" style="color: #657422;">edge.arrow.size=</span>.<span class="dv" style="color: #AD0000;">4</span>)</span>
+<span id="cb63-20"><span class="fu" style="color: #4758AB;">plot</span>(g3, <span class="at" style="color: #657422;">edge.arrow.size=</span>.<span class="dv" style="color: #AD0000;">4</span>)</span>
+<span id="cb63-21"><span class="fu" style="color: #4758AB;">plot</span>(g4, <span class="at" style="color: #657422;">edge.arrow.size=</span>.<span class="dv" style="color: #AD0000;">4</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1_files/figure-html/merge-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="induce-subgraph" class="level2">
+<h2 class="anchored" data-anchor-id="induce-subgraph">Induce subgraph</h2>
+<p>The subgraph can be induced by either vertex or edge names/index. The edge names are in the form <code>from|to</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><span class="co" style="color: #5E5E5E;"># induce a subgraph using a list of vertices</span></span>
+<span id="cb64-2">igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">induced_subgraph</span>(actor_relation_g, <span class="at" style="color: #657422;">v=</span><span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Alice"</span>,<span class="st" style="color: #20794D;">"Bob"</span>,<span class="st" style="color: #20794D;">"Cecil"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 4f5b3fb DN-- 3 3 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 4f5b3fb (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><span class="co" style="color: #5E5E5E;"># induce a subgraph using edges</span></span>
+<span id="cb66-2">igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">subgraph.edges</span>(actor_relation_g, <span class="fu" style="color: #4758AB;">c</span>(<span class="st" style="color: #20794D;">"Bob|Alice"</span>,<span class="st" style="color: #20794D;">"David|Bob"</span>,<span class="st" style="color: #20794D;">"Cecil|Alice"</span>), <span class="at" style="color: #657422;">delete.vertices =</span> <span class="cn" style="color: #8f5902;">TRUE</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH a710864 DN-- 4 3 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from a710864 (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Alice David-&gt;Bob  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb68" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><span class="co" style="color: #5E5E5E;"># induce a subgraph using edges attribute (friendship score stronger than 3)</span></span>
+<span id="cb68-2">e1 <span class="ot" style="color: #003B4F;">=</span> <span class="fu" style="color: #4758AB;">E</span>(actor_relation_g)[<span class="fu" style="color: #4758AB;">E</span>(actor_relation_g)<span class="sc" style="color: #5E5E5E;">$</span>friendship <span class="sc" style="color: #5E5E5E;">&gt;</span> <span class="dv" style="color: #AD0000;">3</span>]</span>
+<span id="cb68-3">igraph<span class="sc" style="color: #5E5E5E;">::</span><span class="fu" style="color: #4758AB;">subgraph.edges</span>(actor_relation_g, e1, <span class="at" style="color: #657422;">delete.vertices =</span> <span class="cn" style="color: #8f5902;">TRUE</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>IGRAPH 7e403b5 DN-- 3 3 -- 
++ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
+| friendship (e/n), advice (e/n)
++ edges from 7e403b5 (vertex names):
+[1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="relationship-between-known-nodes" class="level1">
+<h1>Relationship between known nodes</h1>
+<p>With a known graph, we sometimes want to know relationship between two known nodes. eg. are those two nodes adjacent? are those two nodes linked by a path? what are the path to connect them?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><span class="co" style="color: #5E5E5E;"># check two nodes adjacent. return boolean</span></span>
+<span id="cb70-2"><span class="fu" style="color: #4758AB;">are_adjacent</span>(g3,<span class="st" style="color: #20794D;">"Jim"</span>, <span class="st" style="color: #20794D;">"Zack"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] FALSE</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb72" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><span class="co" style="color: #5E5E5E;"># paths to connect </span></span>
+<span id="cb72-2"><span class="fu" style="color: #4758AB;">all_shortest_paths</span>(g3, <span class="st" style="color: #20794D;">"Jim"</span>,<span class="st" style="color: #20794D;">"Zack"</span>)<span class="sc" style="color: #5E5E5E;">$</span>res[[<span class="dv" style="color: #AD0000;">1</span>]] <span class="co" style="color: #5E5E5E;"># return a igraph.vs</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>+ 4/9 vertices, named, from 3eded49:
+[1] Jim     David   Charlie Zack   </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb74" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><span class="fu" style="color: #4758AB;">all_simple_paths</span>(g3, <span class="st" style="color: #20794D;">"Jim"</span>, <span class="st" style="color: #20794D;">"Zack"</span>) <span class="co" style="color: #5E5E5E;"># return a list of igraph.vs</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
++ 4/9 vertices, named, from 3eded49:
+[1] Jim     David   Charlie Zack   
+
+[[2]]
++ 5/9 vertices, named, from 3eded49:
+[1] Jim     David   Lisa    Charlie Zack   </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb76" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><span class="fu" style="color: #4758AB;">all_simple_paths</span>(g3, <span class="st" style="color: #20794D;">"Jim"</span>, <span class="st" style="color: #20794D;">"Zack"</span>, <span class="at" style="color: #657422;">mode =</span> <span class="st" style="color: #20794D;">"all"</span>)  <span class="co" style="color: #5E5E5E;"># regardless of direction</span></span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
++ 6/9 vertices, named, from 3eded49:
+[1] Jim       David     Alice     Bob       Esmeralda Zack     
+
+[[2]]
++ 7/9 vertices, named, from 3eded49:
+[1] Jim       David     Alice     Cecil     Bob       Esmeralda Zack     
+
+[[3]]
++ 5/9 vertices, named, from 3eded49:
+[1] Jim       David     Alice     Esmeralda Zack     
+
+[[4]]
++ 6/9 vertices, named, from 3eded49:
+[1] Jim       David     Bob       Alice     Esmeralda Zack     
+
+[[5]]
++ 7/9 vertices, named, from 3eded49:
+[1] Jim       David     Bob       Cecil     Alice     Esmeralda Zack     
+
+[[6]]
++ 5/9 vertices, named, from 3eded49:
+[1] Jim       David     Bob       Esmeralda Zack     
+
+[[7]]
++ 4/9 vertices, named, from 3eded49:
+[1] Jim     David   Charlie Zack   
+
+[[8]]
++ 5/9 vertices, named, from 3eded49:
+[1] Jim     David   Lisa    Charlie Zack   </code></pre>
+</div>
+</div>
+<p>In next post, I will discuss how to use <code>{igraph}</code> package to measure and cluster network and use the <code>IGRAPH</code> object to its fullest potential.</p>
+
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>https://en.wikipedia.org/wiki/Graph_theory↩︎</p></li>
+<li id="fn2"><p>Here are <a href="https://learniningwithsckinta.netlify.com/post/network_analysis_part2-2/">part-2</a> and <a href="https://learniningwithsckinta.netlify.com/post/network_analysis_part3/">part-3</a>↩︎</p></li>
+<li id="fn3"><p>https://igraph.org/r/doc/graph_from_adjacency_matrix.html↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>network</category>
+  <guid>https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1.html</guid>
+  <pubDate>Thu, 11 Jul 2019 04:00:00 GMT</pubDate>
+  <media:content url="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" medium="image" type="image/png"/>
+</item>
+</channel>
+</rss>

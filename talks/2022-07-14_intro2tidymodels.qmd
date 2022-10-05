@@ -1,0 +1,7 @@
+---
+title: "R-Ladies Book Club: Introduction to Tidymodels"
+aliases: 
+  - https://sckinta.github.io/intro2TidymodelsWf/intro2tmwf_xaringan.html
+date: "2022-07-14"
+description: "The opening talk at 2022 R-Ladies Book Club"
+---
