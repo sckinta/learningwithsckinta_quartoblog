@@ -9,15 +9,15 @@ about:
     - icon: github
       text: Github
       href: https://github.com/sckinta
+    - icon: twitter
+      text: Twitter
+      href: https://twitter.com/sckinta
     - icon: email
       text: Email
       href: mailto:sckinta@gmail.com
     - icon: google-scholar
       text: Google Scholar
       href: https://scholar.google.com/citations?user=b4ozof8AAAAJ&hl=en
-    - icon: fa-address-book
-      text: CV
-      href: https://sckinta.github.io/datadrivencv_cs/cv_render.html
 ---
 
 # Chun Su

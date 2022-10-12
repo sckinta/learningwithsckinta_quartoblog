@@ -1,108 +1,31 @@
 [
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
+    "objectID": "posts/2019-09-04_network_analysis_part3.html",
+    "href": "posts/2019-09-04_network_analysis_part3.html",
+    "title": "Network visualization - Part 3",
     "section": "",
-    "text": "1 + 1\n\n[1] 2"
+    "text": "In the previous two posts, we discussed about IGRAPH object and how to manipulate, measure and cluster it. In this final post of network analysis series, I will focus on the network work visualization.\nNetwork visualization are supported by two aspects — the aesthetics of network elements (aka, vertices and edges) and layout of network. There are multiple packages available for these aspects. I will focus on the basic igraph plot which is base R plot and the application of ggraph which use similar syntax comparable to ggplot2."
   },
   {
-    "objectID": "posts/welcome/index.html",
-    "href": "posts/welcome/index.html",
-    "title": "Welcome To My Blog",
-    "section": "",
-    "text": "Since this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+    "objectID": "posts/2019-09-04_network_analysis_part3.html#vertex-aesthetics",
+    "href": "posts/2019-09-04_network_analysis_part3.html#vertex-aesthetics",
+    "title": "Network visualization - Part 3",
+    "section": "Vertex aesthetics",
+    "text": "Vertex aesthetics\nSpecify aesthetics in vertex attribute\n\n# make female and male color different\nv = as_data_frame(g, what=\"vertice\") %>% as_tibble %>% \n  mutate(color=case_when(gender==\"F\" ~ \"red\", gender==\"M\" ~ \"blue\"))\ng = g %>% set_vertex_attr(\"color\", value=v$color)\nplot(g)\n\n\n\n# make age as size\nv = v %>% \n  mutate(size=case_when(age < 30 ~ 10, age < 40 & age >30 ~ 20, age > 40 ~ 30))\ng = g %>% set_vertex_attr(\"size\", value=v$size)\nplot(g)\n\n\n\n\nThe methods mentioned above can also be done by specify in plot(). One quick example below show the shape aesthetics. Check igraph valid shape names by names(igraph:::.igraph.shapes)\n\n# make gender as shape\nv = v %>% \n  mutate(shape=case_when(gender==\"F\" ~ \"circle\", gender==\"M\" ~ \"rectangle\"))\n\nplot(g, vertex.shape=v$shape)\nlegend('topleft',legend=unique(v$gender),pch=c(21, 22),pt.bg=c(\"red\",\"blue\"))\n\n\n\n\nBe aware that the aesthetics specified by attributes can be overwritten by specifying in plot(). In addition, those aesthetics can also be used to apply to all vertices like plot(g, vertex.shape=\"rectangle\"). The attributes to be manipulated in igraph (using base R) are limited. To find all the plotting attributes, try ?plot.igraph or go to https://igraph.org/r/doc/plot.common.html\nWe can also draw attention to certain nodes by mark.groups in plot\n\n# mark dept\ng = g %>% set_vertex_attr(\"dept\",value=c(\"sale\",\"IT\",\"sale\",\"IT\",\"sale\")) %>% \n  set_edge_attr(\"same.dept\",value=c(F,F,T,F,T,T))\nv = as_data_frame(g, \"vertices\")\nplot(g, \n     mark.groups=list(\n       unlist(v %>% filter(dept==\"sale\") %>% select(name)),\n       unlist(v %>% filter(dept==\"IT\") %>% select(name))\n       ), \n     mark.col=c(\"#C5E5E7\",\"#ECD89A\"), mark.border=NA)\n\n\n\n\nggraph is a ggplot version of graph plotting. Using graph object as input, it can convert vertice attributes to plot attribute automatically or manually.\n\nv = v %>% \n  mutate(age_range=case_when(age < 30 ~ 20, age < 40 & age >30 ~ 30, age > 40 ~ 40))\ng = g %>% set_vertex_attr(\"age_range\", value=v$age_range)\nggraph(g, layout = \"kk\") +\n  geom_node_point(aes(size=age_range, color=gender), alpha=0.5) +\n  geom_node_text(aes(label=name)) + \n  geom_edge_link() +\n  scale_size_continuous(breaks=c(20,30,40), range = c(2, 6)) +\n  theme_void() \n\n\n\n\nAlmost all the {ggplots} theme, scale functions are available for {ggraph}. Refer to rdocumentation for more details."
   },
   {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Learning with sckinta",
-    "section": "",
-    "text": "R\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nJul 11, 2019\n\n\n9 min\n\n\n\n\n\n\nNo matching items"
+    "objectID": "posts/2019-09-04_network_analysis_part3.html#edge-aesthetics",
+    "href": "posts/2019-09-04_network_analysis_part3.html#edge-aesthetics",
+    "title": "Network visualization - Part 3",
+    "section": "Edge aesthetics",
+    "text": "Edge aesthetics\nSimilar to vertex aesthetics, edge plotting aesthetics can be manipulated both {igraph} default plotting and {ggraph} plotting\n\n# use linetype present whether come from same department, and line width presents friendship\ne = as_data_frame(g, what=\"edges\") %>% as_tibble %>% \n  mutate(width=friendship) %>% \n  mutate(lty=ifelse(same.dept,1,2))\nplot(\n  g %>% set_edge_attr(\"width\",value=e$width) %>% set_edge_attr(\"lty\",value=e$lty),\n  edge.arrow.size=0.8,\n  edge.curved=T\n)\nlegend(\"topleft\", legend=unique(v$gender),pch=21,pt.bg=c(\"red\",\"blue\"), title=\"gender\", box.lty=0)\nlegend(\"left\",legend=unique(e$same.dept),lty=c(1,2), title = \"same.dept\",box.lty=0)\nlegend(\"topright\", legend=sort(unique(e$friendship)), lwd=sort(unique(e$friendship)), title=\"friendship\", box.lty=0)\n\n\n\n\nUsing {ggraph} to show edges attribute is much easier.\n\nggraph(g, layout=\"kk\") +\n  geom_edge_link(aes(edge_width=friendship, edge_linetype=same.dept), arrow = arrow(angle=5, length = unit(0.3, \"inches\"))) +\n  geom_node_point(aes(color=gender), size=6) +\n  geom_node_text(aes(label=name), nudge_y = -0.1, nudge_x = -0.1) +\n  scale_edge_width(range = c(1, 2)) +\n  theme_void()"
   },
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "Learning with sckinta",
-    "section": "",
-    "text": "Hi! Thank you for stopping by! I am a computational biologist at the Amgen Inc., and volunteer as a co-organizer at Rladies Philly. Originally from China, I came to the U.S. in 2011 and completed my PhD in Biology at the University of Virginia in 2017. Starting as a Perl programmer, I picked up R and Python by taking online courses and attending local meetup workshops. I enjoy learning new programming skills and believe learning is a life-time mission. I would like to dedicate this personal website to sharing the study notes and projects in my learning journey and hopefully it will help or motivate other self-learners."
-  },
-  {
-    "objectID": "posts.html",
-    "href": "posts.html",
-    "title": "Learning with sckinta",
-    "section": "",
-    "text": "R\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nJul 11, 2019\n\n\n9 min\n\n\n\n\n\n\nNo matching items"
-  },
-  {
-    "objectID": "talks.html",
-    "href": "talks.html",
-    "title": "Learning with sckinta",
-    "section": "",
-    "text": "R-Ladies Book Club: Chapter 6 linear model selection and regularization\nChapter 6 from ISLR2\n2022-08-18 HTML slides\n\n\n\nR-Ladies Book Club: Introduction to Tidymodels\nThe opening talk at 2022 R-Ladies Philly Book Club\n2022-07-14 HTML slides\n\n\n\nNetwork analysis and visualization\nR-Ladies Philly workshop on network analyses using R igraph object and visualization with ggraph package.\n2019-10-08 PDF slides"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html",
-    "href": "posts/2019-09-04_network_analysis_part1.html",
-    "title": "Network Analysis in R - Part 1",
-    "section": "",
-    "text": "Network analysis, also called graph analysis, is to study the complexity of the inter-relationships between actors of all sorts and provides an architectural view of individual actor connections.\nIt has been applied to many fields, like social network and gene network, and useful for any systematic studies on individual relationship 1.\nI will create a three part series 2 of network analysis and visualization using R packages {igraph} and {ggraph}. In this post, I will focus on general introduction of the terminology and R objects used in network analysis."
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#create-a-graph",
-    "href": "posts/2019-09-04_network_analysis_part1.html#create-a-graph",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Create a graph",
-    "text": "Create a graph\nThere are many ways to create graph from scratch.\n\nEasy graph:graph_from_literal, make_graph\nCreate from user data: graph_from_edgelist, graph_from_adjacency_matrix, graph_from_data_frame\nRandom graphs: sample_gnp, sample_gnm, sample_pa, sample_smallworld, etc.\n\nThe following are a few examples of ways frequently used by me to make graph .\n\nedge list matrix\nThe example below generates a directed graph from a list of vertex pair (edge)\n\nedge_list <-\n    data.frame(from = c(1, 2, 2, 3, 4), to = c(2, 3, 4, 2, 1)) %>% \n    as.matrix()\n\ng <- graph_from_edgelist(edge_list,directed = TRUE)\n\ng\n\nIGRAPH 76f6593 D--- 4 5 -- \n+ edges from 76f6593:\n[1] 1->2 2->3 2->4 3->2 4->1\n\nplot(g)\n\n\n\n\n\n\none-mode graph from a vector of edge\nIf the edge is given in a single vector, the default make_graph will use the order of vector to make one-mode graph. It means that the 1st edge points from the 1st element to the 2nd element, the 2nd edge from the 3rd element to the 4th element, etc. If the length of vector is odd number, it will end with last element connecting back to the 1st element, and throw a warning.\n\ng <- make_graph(letters[1:10], directed = T)\ng\n\nIGRAPH 57706c6 DN-- 10 5 -- \n+ attr: name (v/c)\n+ edges from 57706c6 (vertex names):\n[1] a->b c->d e->f g->h i->j\n\nplot(g)\n\n\n\n\n\n\nusing adjacent matrix\nThe example below generates a undirected graph from a binary matrix, in which nodes are matrix colname and rowname.\n\nset.seed(123)\n\nadj_matrix <-\n    matrix(sample(0:1, 100, replace = TRUE, prob = c(0.8, 0.1)), nc = 10)\n\ncolnames(adj_matrix) <- letters[1:10]\n\nrownames(adj_matrix) <- letters[1:10]\n\nadj_matrix\n\n  a b c d e f g h i j\na 0 1 1 1 0 0 0 0 0 0\nb 0 0 0 1 0 0 0 0 0 0\nc 0 0 0 0 0 0 0 0 0 0\nd 0 0 1 0 0 0 0 0 0 0\ne 1 0 0 0 0 0 0 0 0 0\nf 0 1 0 0 0 0 0 0 0 0\ng 0 0 0 0 0 0 0 0 1 0\nh 1 0 0 0 0 0 0 0 1 0\ni 0 0 0 0 0 1 0 0 0 0\nj 0 1 0 0 0 0 0 0 0 0\n\ng <-\n    graph_from_adjacency_matrix(adj_matrix, mode = \"undirected\", weighted = T)\n\ng\n\nIGRAPH aee8fb3 UNW- 10 12 -- \n+ attr: name (v/c), weight (e/n)\n+ edges from aee8fb3 (vertex names):\n [1] a--b a--c a--d a--e a--h b--d b--f b--j c--d f--i g--i h--i\n\nplot(g)\n\n\n\n\nThere are other modes 3 available with details.\n\n\nUsing named data.frame\nThis is my favorite. The graph generated from data.frame can add all attributes at once. The below example is from official website. The attributes for nodes (actors) are age and gender, and edge (relationship) attributes include same.dept, friendship and advice.\n\nactors <- data.frame(\n  name=c(\"Alice\", \"Bob\", \"Cecil\", \"David\",\"Esmeralda\"),\n  age=c(48,33,45,34,21),\n  gender=c(\"F\",\"M\",\"F\",\"M\",\"F\"))\n\nrelations <- data.frame(\n  from=c(\"Bob\", \"Cecil\", \"Cecil\", \"David\",\"David\", \"Esmeralda\"),\n  to=c(\"Alice\", \"Bob\", \"Alice\", \"Alice\", \"Bob\", \"Alice\"),\n  same.dept=c(FALSE,FALSE,TRUE,FALSE,FALSE,TRUE),\n  friendship=c(4,5,5,2,1,1), \n  advice=c(4,5,5,4,2,3)\n  )\n\nactor_relation_g <- graph_from_data_frame(relations, directed=TRUE, vertices=actors)\n\nactor_relation_g\n\nIGRAPH 58f180e DN-- 5 6 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 58f180e (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice\n\nplot(actor_relation_g)\n\n\n\n\n\n\nCreate random graph\nRandom graph generation is useful when it comes to simulation.\n\nsample_gnp and sample_gnm generate random graph by assuming the same constant probability for every possible edge.\n\nThe required parameters for gnp include: 1) The number of vertices in the graph n and 2) The probability for drawing an edge between two arbitrary vertices p\n\n\n\n# sample 10 vertex, every possible edge is created with the same constant probability 0.3\nset.seed(12)\ngr <- sample_gnp(10, 0.3)\ngr\n\nIGRAPH d732a6b U--- 10 11 -- Erdos-Renyi (gnp) graph\n+ attr: name (g/c), type (g/c), loops (g/l), p (g/n)\n+ edges from d732a6b:\n [1] 2-- 5 3-- 5 5-- 6 4-- 7 3-- 8 6-- 8 1-- 9 3-- 9 8-- 9 3--10 8--10\n\nplot(gr)\n\n\n\n\n-  The required parameters for *gmp* include: 1) The number of vertices in the graph `n` and 2) The number of edges in the graph `m`.\n\n# sample 10 vertex, create a 15-edge graph\nset.seed(123)\ngr <- sample_gnm(10, 15)\ngr\n\nIGRAPH 08c7d24 U--- 10 15 -- Erdos-Renyi (gnm) graph\n+ attr: name (g/c), type (g/c), loops (g/l), m (g/n)\n+ edges from 08c7d24:\n [1] 1-- 2 1-- 4 2-- 4 3-- 4 5-- 6 2-- 7 3-- 7 5-- 7 2-- 8 3-- 8 6-- 8 1-- 9\n[13] 4-- 9 5--10 9--10\n\nplot(gr)\n\n\n\n\n\nRandom scale free network, which means a network whose degree of nodes distribution follows a power law. sample_pa generates scale-free graphs according to the Barabasi-Albert model. We start with a single vertex and no edges in the first time step. Then we add one vertex in each time step and the new vertex initiates some edges to old vertices. The probability that an old vertex is chosen is given by \\(p(i) ~ k_i * power + zero.appeal\\)\n\n\nset.seed(123)\n\ngr <- sample_pa(100, power = 2)\n\nplot(g, vertex.label= NA, edge.arrow.size=0.02,vertex.size = 0.5)\n\n\n\nplot(density(degree_distribution(gr)))\n\n\n\n\nThere are many other random graphs using different models. To find more, try ?igraph::sample_[TAB]."
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#extract-vertexedge-and-their-attributes",
-    "href": "posts/2019-09-04_network_analysis_part1.html#extract-vertexedge-and-their-attributes",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Extract vertex/edge and their attributes",
-    "text": "Extract vertex/edge and their attributes\nTo get vertex list and their attributes from graph object, we use V(graph)$\"<attribute_name>\" to convert graph object to vector. Using IGRAPH actor_relation_g created in previous chunk as example, we will get actor node (name), age (attribute 1) and gender (attribute 2)\n\nV(actor_relation_g)$name\n\n[1] \"Alice\"     \"Bob\"       \"Cecil\"     \"David\"     \"Esmeralda\"\n\nV(actor_relation_g)$age\n\n[1] 48 33 45 34 21\n\nV(actor_relation_g)$gender\n\n[1] \"F\" \"M\" \"F\" \"M\" \"F\"\n\n\nWe can also get all the vertex attributes to a data.frame using igraph::as_data_frame()\n\nigraph::as_data_frame(actor_relation_g, what = \"vertices\")\n\n               name age gender\nAlice         Alice  48      F\nBob             Bob  33      M\nCecil         Cecil  45      F\nDavid         David  34      M\nEsmeralda Esmeralda  21      F\n\n\nSimilarly, to get edge list and their attributes from graph object, we use E(graph)$\"<attribute_name>\" to convert graph object to vector. OR using igraph::as_data_frame() to convert all edges to a data.frame\n\n# edge attributes\nE(actor_relation_g)$same.dept\n\n[1] FALSE FALSE  TRUE FALSE FALSE  TRUE\n\nE(actor_relation_g)$friendship\n\n[1] 4 5 5 2 1 1\n\n# edge data.frame\nigraph::as_data_frame(actor_relation_g, what = \"edges\")\n\n       from    to same.dept friendship advice\n1       Bob Alice     FALSE          4      4\n2     Cecil   Bob     FALSE          5      5\n3     Cecil Alice      TRUE          5      5\n4     David Alice     FALSE          2      4\n5     David   Bob     FALSE          1      2\n6 Esmeralda Alice      TRUE          1      3"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#add-vertex-and-edges",
-    "href": "posts/2019-09-04_network_analysis_part1.html#add-vertex-and-edges",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Add vertex and edges",
-    "text": "Add vertex and edges\nVertices and edges can be added to existing graph by add_<vertices|edges>() or + <vertices|edges>(). Please be aware that vertices of added new edges must be from known vertices already in the graph.\n\n# add vertices \nactor_relation_g %>% \n    add_vertices(2, name=c(\"Lisa\",\"Zack\")) # the first argument is number of vertex\n\nIGRAPH ee5e3ee DN-- 7 6 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from ee5e3ee (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice\n\nactor_relation_g + vertices(c(\"Lisa\",\"Zack\"))\n\nIGRAPH e8d049d DN-- 7 6 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from e8d049d (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice\n\n\nTo add new edge, the new edge must be between known vertices already in the graph.\n\n# add connected edges (even number of vertices). \nactor_relation_g %>% \n    add_edges(c(\"Alice\",\"Bob\"))\n\nIGRAPH ffec5aa DN-- 5 7 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from ffec5aa (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice Alice    ->Bob  \n\nactor_relation_g + edge(c(\"Alice\",\"Bob\"))\n\nIGRAPH d46d4f8 DN-- 5 7 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from d46d4f8 (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice Alice    ->Bob  \n\n\nThe edges can be also be added by + path(). The path is a igraph.path object that each element is connected to the next, but it is not a IGRAPH object.\n\n# add paths. The vertices must be from known vertices already in the graph \nactor_relation_g + path(\"Alice\",\"Bob\",\"Cecil\")\n\nIGRAPH 02b187f DN-- 5 8 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 02b187f (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice Alice    ->Bob   Bob      ->Cecil\n\n\nIf a new vertex needs to be added to current graph, using add graph method instead.\n\nactor_relation_g + make_graph(c(\"Alice\",\"Bob\",\"Bob\",\"Melisa\")) # this create same path as above\n\nIGRAPH 35ce388 DN-- 6 8 -- \n+ attr: age (v/n), gender (v/c), name (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 35ce388 (vertex names):\n[1] Esmeralda->Alice  David    ->Bob    David    ->Alice  Cecil    ->Bob   \n[5] Cecil    ->Alice  Bob      ->Melisa Bob      ->Alice  Alice    ->Bob"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#delete-vertex-and-edges",
-    "href": "posts/2019-09-04_network_analysis_part1.html#delete-vertex-and-edges",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Delete vertex and edges",
-    "text": "Delete vertex and edges\nDelete can be done by delete_<vertices|edges>() using either index or name of vertices|edges.\n\n### remove the vertices whose age is younger than 30\nvertex_df = actor_relation_g %>% \n    igraph::as_data_frame(what=\"vertices\") %>% \n        dplyr::as_tibble() %>% \n        dplyr::mutate(index=row_number()) %>% \n        dplyr::filter(age < 30)\n\n# remove vertices by index number \nactor_relation_g %>% delete_vertices(vertex_df$index)\n\nIGRAPH f58e53d DN-- 4 5 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from f58e53d (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice David->Alice David->Bob  \n\n# remove vertice by name \nactor_relation_g %>% delete_vertices(vertex_df$name)\n\nIGRAPH 405cdec DN-- 4 5 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 405cdec (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice David->Alice David->Bob  \n\n\n\n### remove the edges with friendship <= 1 \nedge_df = actor_relation_g %>% \n    igraph::as_data_frame(what=\"edges\") %>% \n    dplyr::as_tibble() %>% \n    mutate(index=row_number()) %>% \n    mutate(name=paste(from,to,sep=\"|\")) %>% \n    filter(friendship <= 1)\n\n# remove vertice by index\nactor_relation_g %>% delete_edges(edge_df$index)\n\nIGRAPH 15d8108 DN-- 5 4 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 15d8108 (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice David->Alice\n\n# remove vertice by name \nactor_relation_g %>% delete_edges(edge_df$name)\n\nIGRAPH c62e75a DN-- 5 4 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from c62e75a (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice David->Alice"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#setdelete-the-attributes-of-vertex-and-edges",
-    "href": "posts/2019-09-04_network_analysis_part1.html#setdelete-the-attributes-of-vertex-and-edges",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Set/Delete the attributes of vertex and edges",
-    "text": "Set/Delete the attributes of vertex and edges\nThe attributes of vertices and edges can be added or deleted to existing graph by set_vertex_attr()/set_edge_attr() or delete_vertex_attr()/delete_edge_attr().\n\n# add a new attr \"relationship\" for people in the same dept\nedge_df <-\n    actor_relation_g %>% igraph::as_data_frame(what = \"edges\") %>%\n    mutate(relationship = ifelse(same.dept, \"collegue\", NA))\n\nactor_relation_g %>%\n    set_edge_attr(\"relationship\", which(!is.na(edge_df$relationship)), edge_df$relationship[!is.na(edge_df$relationship)]\n                  )\n\nIGRAPH 58f180e DN-- 5 6 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n), relationship (e/c)\n+ edges from 58f180e (vertex names):\n[1] Bob      ->Alice Cecil    ->Bob   Cecil    ->Alice David    ->Alice\n[5] David    ->Bob   Esmeralda->Alice"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#merge-graph",
-    "href": "posts/2019-09-04_network_analysis_part1.html#merge-graph",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Merge graph",
-    "text": "Merge graph\nGraphs union/intersection is to merge two or more graphs into one graph using the shared the vertices.\n\n# create new graph\ng2 <- graph_from_literal(\"David\"-+\"Charlie\"+-+\"Lisa\",\n                        \"Lisa\"+-+\"David\"+-\"Jim\",\n                        \"Zack\"+-\"Esmeralda\"-+\"Bob\",\n                        \"Zack\"+-\"Charlie\",\n                        \"Lisa\"+-\"Lisa\",\n                        \"Bob\"-+\"Alice\"+-\"Esmeralda\"\n                        )\n\n#### union graph\ng3 <- igraph::union(actor_relation_g,g2)\n\n#### graph intersection\ng4 <- igraph::intersection(actor_relation_g,g2)\n\n### plot new graphs\npar(mfrow=c(2,2)) \nplot(actor_relation_g, edge.arrow.size=.4)\nplot(g2, edge.arrow.size=.4)\nplot(g3, edge.arrow.size=.4)\nplot(g4, edge.arrow.size=.4)"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#induce-subgraph",
-    "href": "posts/2019-09-04_network_analysis_part1.html#induce-subgraph",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Induce subgraph",
-    "text": "Induce subgraph\nThe subgraph can be induced by either vertex or edge names/index. The edge names are in the form from|to.\n\n# induce a subgraph using a list of vertices\nigraph::induced_subgraph(actor_relation_g, v=c(\"Alice\",\"Bob\",\"Cecil\"))\n\nIGRAPH dc65973 DN-- 3 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from dc65973 (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice\n\n# induce a subgraph using edges\nigraph::subgraph.edges(actor_relation_g, c(\"Bob|Alice\",\"David|Bob\",\"Cecil|Alice\"), delete.vertices = TRUE)\n\nIGRAPH b9a95b7 DN-- 4 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from b9a95b7 (vertex names):\n[1] Bob  ->Alice Cecil->Alice David->Bob  \n\n# induce a subgraph using edges attribute (friendship score stronger than 3)\ne1 = E(actor_relation_g)[E(actor_relation_g)$friendship > 3]\nigraph::subgraph.edges(actor_relation_g, e1, delete.vertices = TRUE)\n\nIGRAPH 5672108 DN-- 3 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 5672108 (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice"
-  },
-  {
-    "objectID": "posts/2019-09-04_network_analysis_part1.html#relationship-between-known-nodes",
-    "href": "posts/2019-09-04_network_analysis_part1.html#relationship-between-known-nodes",
-    "title": "Network Analysis in R - Part 1",
-    "section": "Relationship between known nodes",
-    "text": "Relationship between known nodes\nWith a known graph, we sometimes want to know relationship between two known nodes. eg. are those two nodes adjacent? are those two nodes linked by a path? what are the path to connect them?\n\n# check two nodes adjacent. return boolean\nare_adjacent(g3,\"Jim\", \"Zack\")\n\n[1] FALSE\n\n# paths to connect \nall_shortest_paths(g3, \"Jim\",\"Zack\")$res[[1]] # return a igraph.vs\n\n+ 4/9 vertices, named, from a2a1653:\n[1] Jim     David   Charlie Zack   \n\nall_simple_paths(g3, \"Jim\", \"Zack\") # return a list of igraph.vs\n\n[[1]]\n+ 4/9 vertices, named, from a2a1653:\n[1] Jim     David   Charlie Zack   \n\n[[2]]\n+ 5/9 vertices, named, from a2a1653:\n[1] Jim     David   Lisa    Charlie Zack   \n\nall_simple_paths(g3, \"Jim\", \"Zack\", mode = \"all\")  # regardless of direction\n\n[[1]]\n+ 6/9 vertices, named, from a2a1653:\n[1] Jim       David     Alice     Bob       Esmeralda Zack     \n\n[[2]]\n+ 7/9 vertices, named, from a2a1653:\n[1] Jim       David     Alice     Cecil     Bob       Esmeralda Zack     \n\n[[3]]\n+ 5/9 vertices, named, from a2a1653:\n[1] Jim       David     Alice     Esmeralda Zack     \n\n[[4]]\n+ 6/9 vertices, named, from a2a1653:\n[1] Jim       David     Bob       Alice     Esmeralda Zack     \n\n[[5]]\n+ 7/9 vertices, named, from a2a1653:\n[1] Jim       David     Bob       Cecil     Alice     Esmeralda Zack     \n\n[[6]]\n+ 5/9 vertices, named, from a2a1653:\n[1] Jim       David     Bob       Esmeralda Zack     \n\n[[7]]\n+ 4/9 vertices, named, from a2a1653:\n[1] Jim     David   Charlie Zack   \n\n[[8]]\n+ 5/9 vertices, named, from a2a1653:\n[1] Jim     David   Lisa    Charlie Zack   \n\n\nIn next post, I will discuss how to use {igraph} package to measure and cluster network and use the IGRAPH object to its fullest potential."
+    "objectID": "posts/2019-09-04_network_analysis_part3.html#facet",
+    "href": "posts/2019-09-04_network_analysis_part3.html#facet",
+    "title": "Network visualization - Part 3",
+    "section": "Facet",
+    "text": "Facet\nOne big advantage of {ggraph} is to use facet. It can be facet_edges or facet_nodes or facet_graph. Here I will only show example of facet_nodes.\n\ng = g %>% set_vertex_attr(\"dept\",value=c(\"sale\",\"IT\",\"sale\",\"IT\",\"sale\")) %>% \n  set_edge_attr(\"same.dept\",value=c(F,F,T,F,T,T))\n\n#  facet based on the dept\nggraph(g, layout=\"kk\") +\n  facet_nodes(~dept, drop = F) +\n  geom_edge_link(aes(edge_width=friendship, linetype=same.dept), arrow = arrow(angle=5, length = unit(0.3, \"inches\"))) +\n  geom_node_point(aes(color=gender), size=6) +\n  geom_node_text(aes(label=name), nudge_y = -0.1, nudge_x = -0.1) +\n  scale_edge_width(range = c(1, 2))"
   },
   {
     "objectID": "posts/2019-07-11_network_analysis_part1.html",
@@ -159,5 +82,89 @@
     "title": "Network Analysis in R - Part 1",
     "section": "Induce subgraph",
     "text": "Induce subgraph\nThe subgraph can be induced by either vertex or edge names/index. The edge names are in the form from|to.\n\n# induce a subgraph using a list of vertices\nigraph::induced_subgraph(actor_relation_g, v=c(\"Alice\",\"Bob\",\"Cecil\"))\n\nIGRAPH 4f5b3fb DN-- 3 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 4f5b3fb (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice\n\n# induce a subgraph using edges\nigraph::subgraph.edges(actor_relation_g, c(\"Bob|Alice\",\"David|Bob\",\"Cecil|Alice\"), delete.vertices = TRUE)\n\nIGRAPH a710864 DN-- 4 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from a710864 (vertex names):\n[1] Bob  ->Alice Cecil->Alice David->Bob  \n\n# induce a subgraph using edges attribute (friendship score stronger than 3)\ne1 = E(actor_relation_g)[E(actor_relation_g)$friendship > 3]\nigraph::subgraph.edges(actor_relation_g, e1, delete.vertices = TRUE)\n\nIGRAPH 7e403b5 DN-- 3 3 -- \n+ attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),\n| friendship (e/n), advice (e/n)\n+ edges from 7e403b5 (vertex names):\n[1] Bob  ->Alice Cecil->Bob   Cecil->Alice"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html",
+    "href": "posts/2019-08-24_network_analysis_part2.html",
+    "title": "Network Analysis in R - Part 2",
+    "section": "",
+    "text": "In last post, I covered the basic components of IGRAPH objects and how to manipulate IGRAPH. You may notice that most of those manipulation do not really require a IGRAPH object to play with. However, in this post, you will realize the advantage of using IGRAPH over data.frame in network analysis.\nIn this session, we are going to use a new un-directed graph called gr generated by sample_gnp()."
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#degree-and-strength",
+    "href": "posts/2019-08-24_network_analysis_part2.html#degree-and-strength",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Degree and strength",
+    "text": "Degree and strength\nDegree measures the number of edges connected to given vertex. In igraph, we use degree. Be aware that, for directed graph, the node degree can be “in-degree” (the edge number pointing to the node) and “out-degree” (the edge number pointing from node). We can also summaries the all degree by using degree_distribution.\n\n# get degree for each node \ndegree(gr, v=1:10)\n\n [1] 1 1 4 1 3 2 1 4 3 2\n\n# degree distribution\ndegree_distribution(gr) # probability for degree 0,1,2,3,4\n\n[1] 0.0 0.4 0.2 0.2 0.2\n\n\nstrength is weighted version of degree, by summing up the edge weights of the adjacent edges for each vertex.\n\n# add random weight attribute\nset.seed(12)\ngr2 <- gr %>% set_edge_attr(\n  \"weight\",index=E(gr),\n  value=sample(seq(0,1,0.05),size=length(E(gr)))\n)\n# calculate strength\nstrength(gr2, weights = E(gr)$weight)\n\n [1] 1.00 0.05 2.65 0.20 1.45 1.20 0.20 2.85 1.85 1.65"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#orderdistance-and-path",
+    "href": "posts/2019-08-24_network_analysis_part2.html#orderdistance-and-path",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Order/distance and path",
+    "text": "Order/distance and path\nOrder measures the edge number from one node to the other. In igraph package, we use distances function to get order between two vertices. For directed graph, in mode only follow the paths toward the first node, while out mode goes away from the first node. If no connection can be made, Inf will be return.\n\n# count all edges from 1 to 10, regardless of direction \ndistances(gr, v=1, to=10, mode=\"all\", weights = NA)\n\n     [,1]\n[1,]    3\n\n# pairwise distance table \ndistances(gr, mode=\"all\")\n\n      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]\n [1,]    0    4    2  Inf    3    3  Inf    2    1     3\n [2,]    4    0    2  Inf    1    2  Inf    3    3     3\n [3,]    2    2    0  Inf    1    2  Inf    1    1     1\n [4,]  Inf  Inf  Inf    0  Inf  Inf    1  Inf  Inf   Inf\n [5,]    3    1    1  Inf    0    1  Inf    2    2     2\n [6,]    3    2    2  Inf    1    0  Inf    1    2     2\n [7,]  Inf  Inf  Inf    1  Inf  Inf    0  Inf  Inf   Inf\n [8,]    2    3    1  Inf    2    1  Inf    0    1     1\n [9,]    1    3    1  Inf    2    2  Inf    1    0     2\n[10,]    3    3    1  Inf    2    2  Inf    1    2     0\n\n\nTo get detail route from one node to the other, we use path.\n\n# shortest path to connect\nall_shortest_paths(gr, 1,10)$res\n\n[[1]]\n+ 4/10 vertices, from 2d81952:\n[1]  1  9  8 10\n\n[[2]]\n+ 4/10 vertices, from 2d81952:\n[1]  1  9  3 10\n\n# all path to connect\nall_simple_paths(gr, 1,10)\n\n[[1]]\n+ 7/10 vertices, from 2d81952:\n[1]  1  9  3  5  6  8 10\n\n[[2]]\n+ 5/10 vertices, from 2d81952:\n[1]  1  9  3  8 10\n\n[[3]]\n+ 4/10 vertices, from 2d81952:\n[1]  1  9  3 10\n\n[[4]]\n+ 5/10 vertices, from 2d81952:\n[1]  1  9  8  3 10\n\n[[5]]\n+ 7/10 vertices, from 2d81952:\n[1]  1  9  8  6  5  3 10\n\n[[6]]\n+ 4/10 vertices, from 2d81952:\n[1]  1  9  8 10"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#transitivity",
+    "href": "posts/2019-08-24_network_analysis_part2.html#transitivity",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Transitivity",
+    "text": "Transitivity\nTransitivity measures the probability that the adjacent vertices of a vertex are connected. This is also called the clustering coefficient, a proxy to determine how well connected the graph is. This property is very important in social networks, and to a lesser degree in other networks.\n\n# two extreme classes -- full graph and ring graph\ng1 = make_full_graph(10)\nplot(g1)\n\n\n\ntransitivity(g1)\n\n[1] 1\n\ng2 = make_ring(10)\nplot(g2)\n\n\n\ntransitivity(g2)\n\n[1] 0\n\n\nThere are multiple different types of transitivity can be calculated (weighted or un-weighted). Also, the transitivity can be calculated locally for a sub-graph by specifying vertex ids. See details by ?transitivity"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#centrality",
+    "href": "posts/2019-08-24_network_analysis_part2.html#centrality",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Centrality",
+    "text": "Centrality\nCentrality indices identify the most important vertices within a graph. In other words, the “hub” of network. However, this “importance” can be conceived in two ways:\n\nrelation to a type of flow or transfer across the network.\ninvolvement in the cohesiveness of the network\n\nThe simplest of centrality indicator is degree centrality (centr_degree), aka, a node is important if it has most neighbors.\nBesides degree centrality, there are\n\ncloseness centrality (centr_clo) - a node is important if it takes the shortest mean distance from a vertex to other vertices\nbetween-ness centrality (centr_betw) - a node is important if extent to which a vertex lies on paths between other vertices are high.\neigenvector centrality (centr_eigen) - a node is important if it is linked to by other important nodes.\n\n\ncentr_degree(gr, mode=\"all\")\n\n$res\n [1] 1 1 4 1 3 2 1 4 3 2\n\n$centralization\n[1] 0.2\n\n$theoretical_max\n[1] 90\n\ncentr_clo(gr, mode = \"all\")\n\n$res\n [1] 0.3888889 0.3888889 0.7000000 1.0000000 0.5833333 0.5384615 1.0000000\n [8] 0.6363636 0.5833333 0.5000000\n\n$centralization\n[1] 0.8690613\n\n$theoretical_max\n[1] 4.235294\n\ncentr_betw(gr, directed = FALSE)\n\n$res\n [1] 0.0 0.0 8.0 0.0 6.5 1.0 0.0 4.5 6.0 0.0\n\n$centralization\n[1] 0.1666667\n\n$theoretical_max\n[1] 324\n\ncentr_eigen(gr,directed = FALSE)\n\n$vector\n [1] 2.519712e-01 1.933127e-01 1.000000e+00 2.093280e-17 5.762451e-01\n [6] 5.244145e-01 1.036823e-17 9.869802e-01 7.511000e-01 6.665713e-01\n\n$value\n[1] 2.980897\n\n$options\n$options$bmat\n[1] \"I\"\n\n$options$n\n[1] 10\n\n$options$which\n[1] \"LA\"\n\n$options$nev\n[1] 1\n\n$options$tol\n[1] 0\n\n$options$ncv\n[1] 0\n\n$options$ldv\n[1] 0\n\n$options$ishift\n[1] 1\n\n$options$maxiter\n[1] 1000\n\n$options$nb\n[1] 1\n\n$options$mode\n[1] 1\n\n$options$start\n[1] 1\n\n$options$sigma\n[1] 0\n\n$options$sigmai\n[1] 0\n\n$options$info\n[1] 0\n\n$options$iter\n[1] 8\n\n$options$nconv\n[1] 1\n\n$options$numop\n[1] 26\n\n$options$numopb\n[1] 0\n\n$options$numreo\n[1] 16\n\n\n$centralization\n[1] 0.6311756\n\n$theoretical_max\n[1] 8\n\n\nMany other centrality indicators refer to wiki page of Centrality."
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#decompose-graph",
+    "href": "posts/2019-08-24_network_analysis_part2.html#decompose-graph",
+    "title": "Network Analysis in R - Part 2",
+    "section": "decompose graph",
+    "text": "decompose graph\nTo split graph into connected sub-graph, decompose.graph calculates the connected components of your graph. A component is a sub-graph in which all nodes are inter-connected.\n\n# decompose graph to connected components\ndg <- decompose.graph(gr)\ndg\n\n[[1]]\nIGRAPH 9072470 U--- 8 10 -- Erdos-Renyi (gnp) graph\n+ attr: name (g/c), type (g/c), loops (g/l), p (g/n)\n+ edges from 9072470:\n [1] 2--4 3--4 4--5 3--6 5--6 1--7 3--7 6--7 3--8 6--8\n\n[[2]]\nIGRAPH cea9efc U--- 2 1 -- Erdos-Renyi (gnp) graph\n+ attr: name (g/c), type (g/c), loops (g/l), p (g/n)\n+ edge from cea9efc:\n[1] 1--2\n\n# summary statics graph components\ncomponents(gr)\n\n$membership\n [1] 1 1 1 2 1 1 2 1 1 1\n\n$csize\n[1] 8 2\n\n$no\n[1] 2\n\n# plot components\ncoords <- layout_(gr, nicely())\nplot(gr, layout=coords,\n     mark.groups = split(as_ids(V(gr)), components(gr)$membership)\n     )"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#cliques",
+    "href": "posts/2019-08-24_network_analysis_part2.html#cliques",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Cliques",
+    "text": "Cliques\nClique is a special sub-graph in which every two distinct vertices are adjacent. The direction is usually ignored for clique calculations\n\n# extract cliques that contain more than 3 vertices\ncliques(gr, min=3)\n\n[[1]]\n+ 3/10 vertices, from 2d81952:\n[1]  3  8 10\n\n[[2]]\n+ 3/10 vertices, from 2d81952:\n[1] 3 8 9\n\n# get cliques with largest number of vertices\nlargest_cliques(gr)\n\n[[1]]\n+ 3/10 vertices, from 2d81952:\n[1] 8 3 9\n\n[[2]]\n+ 3/10 vertices, from 2d81952:\n[1]  8  3 10\n\n# plot cliques\ncl <- cliques(gr, 3)\n\ncoords <- layout_(gr, nicely())\nplot(gr, layout=coords,\n     mark.groups=lapply(cl, function(g){as_ids(g)}), \n     mark.col=c(\"#C5E5E7\",\"#ECD89A\"))"
+  },
+  {
+    "objectID": "posts/2019-08-24_network_analysis_part2.html#communities-and-modules",
+    "href": "posts/2019-08-24_network_analysis_part2.html#communities-and-modules",
+    "title": "Network Analysis in R - Part 2",
+    "section": "Communities and modules",
+    "text": "Communities and modules\nGraph communities structure is defined if the nodes of the network can be easily grouped into (potentially overlapping) sets of nodes such that each set of nodes is densely connected internally. Modularity is always used as a measure the strength of division of a network into community for optimization methods in detecting community structure in networks.\nThere are many algorithms to cluster graph to communities.\n\ncluster_edge_betweenness a hierarchical decomposition process where edges are removed in the decreasing order of their edge betweenness scores.\n\ncluster_optimal - a top-down hierarchical approach that optimizes the modularity function\ncluster_walktrap - an approach based on random walks\ncluster_fast_greedy\ncluster_label_prop\ncluster_leading_eigen\ncluster_Louvain\ncluster_spinglass\n\nWhich cluster method to use? Refer to this stackoverflow post for more information.\n\n# cluster graph using walktrap method, turn a ”communities” object\nwtc <- cluster_walktrap(gr) \nwtc\n\nIGRAPH clustering walktrap, groups: 3, mod: 0.33\n+ groups:\n  $`1`\n  [1]  1  3  8  9 10\n  \n  $`2`\n  [1] 2 5 6\n  \n  $`3`\n  [1] 4 7\n  \n\n# find membership for each vertex\nmembership(wtc)\n\n [1] 1 2 1 3 2 2 3 1 1 1\n\n# calculate modularity for walktrap clustering on this graph\nmodularity(wtc) \n\n[1] 0.3305785\n\n# plot community\ncoords <- layout_(gr, nicely())\nplot(wtc, gr, layout=coords)\n\n\n\n\nTo learn more about graph clustering:\n\nNCSU course slide Introduction to Graph Cluster Analysis\nMIT open course Finding Clusters in Graphs"
+  },
+  {
+    "objectID": "talks.html",
+    "href": "talks.html",
+    "title": "Learning with sckinta",
+    "section": "",
+    "text": "R-Ladies Book Club: Chapter 6 linear model selection and regularization\nChapter 6 from ISLR2\n2022-08-18 HTML slides\n\n\n\nR-Ladies Book Club: Introduction to Tidymodels\nThe opening talk at 2022 R-Ladies Philly Book Club\n2022-07-14 HTML slides\n\n\n\nNetwork analysis and visualization\nR-Ladies Philly workshop on network analyses using R igraph object and visualization with ggraph package.\n2019-10-08 PDF slides"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Learning with sckinta",
+    "section": "",
+    "text": "R\n\n\nnetwork\n\n\nvisualization\n\n\n\n\n\n\n\n\n\n\n\nSep 4, 2019\n\n\n7 min\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nR\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nAug 24, 2019\n\n\n4 min\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nR\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nJul 11, 2019\n\n\n9 min\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "Learning with sckinta",
+    "section": "",
+    "text": "Hi! Thank you for stopping by! I am a computational biologist at the Amgen Inc., and volunteer as a co-organizer at Rladies Philly. Originally from China, I came to the U.S. in 2011 and completed my PhD in Biology at the University of Virginia in 2017. Starting as a Perl programmer, I picked up R and Python by taking online courses and attending local meetup workshops. I enjoy learning new programming skills and believe learning is a life-time mission. I would like to dedicate this personal website to sharing the study notes and projects in my learning journey and hopefully it will help or motivate other self-learners."
+  },
+  {
+    "objectID": "posts.html",
+    "href": "posts.html",
+    "title": "Learning with sckinta",
+    "section": "",
+    "text": "R\n\n\nnetwork\n\n\nvisualization\n\n\n\n\n\n\n\n\n\n\n\nSep 4, 2019\n\n\n7 min\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nR\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nAug 24, 2019\n\n\n4 min\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nR\n\n\nnetwork\n\n\n\n\n\n\n\n\n\n\n\nJul 11, 2019\n\n\n9 min\n\n\n\n\n\n\nNo matching items"
   }
 ]

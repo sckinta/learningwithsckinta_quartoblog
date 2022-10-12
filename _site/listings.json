@@ -2,19 +2,17 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2019-09-04_network_analysis_part3.html",
+      "/posts/2019-08-24_network_analysis_part2.html",
       "/posts/2019-07-11_network_analysis_part1.html"
     ]
   },
   {
     "listing": "/posts.html",
     "items": [
+      "/posts/2019-09-04_network_analysis_part3.html",
+      "/posts/2019-08-24_network_analysis_part2.html",
       "/posts/2019-07-11_network_analysis_part1.html"
-    ]
-  },
-  {
-    "listing": "/talks.html",
-    "items": [
-      "/talks/2022-07-14_intro2tidymodels.html"
     ]
   }
 ]

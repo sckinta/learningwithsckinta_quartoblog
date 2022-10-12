@@ -7,12 +7,14 @@ website:
   description: "This is Chun Su's personal blog"
   navbar:
     right:
-      - text: about
+      - text: About
         href: about.qmd
-      - text: posts
+      - text: Posts
         href: posts.qmd
-      - text: talks
+      - text: Talks
         href: talks.qmd
+      - text: CV
+        href: https://sckinta.github.io/datadrivencv_cs/cv_render
 format:
   html:
     theme: 
