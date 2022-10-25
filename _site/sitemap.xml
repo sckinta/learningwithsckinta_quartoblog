@@ -1,39 +1,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://learniningwithsckinta.netlify.app/posts/2021-11-02_tidyTues_ultraRace.html</loc>
-    <lastmod>2022-10-25T02:38:18.662Z</lastmod>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2022-02-28-glm_coefficients.html</loc>
+    <lastmod>2022-10-25T03:15:00.366Z</lastmod>
   </url>
   <url>
-    <loc>https://learniningwithsckinta.netlify.app/posts/2022-02-28-glm_coefficients.html</loc>
-    <lastmod>2022-10-25T03:04:01.977Z</lastmod>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2020-04-30_caret_vs_tidymodels.html</loc>
+    <lastmod>2022-10-25T03:15:01.153Z</lastmod>
   </url>
   <url>
     <loc>https://learniningwithsckinta.netlify.app/posts/2022-01-18-chocolate.html</loc>
-    <lastmod>2022-10-25T03:04:52.036Z</lastmod>
-  </url>
-  <url>
-    <loc>https://learniningwithsckinta.netlify.app/talks.html</loc>
-    <lastmod>2022-10-25T02:57:21.806Z</lastmod>
-  </url>
-  <url>
-    <loc>https://learniningwithsckinta.netlify.app/talks/2022-07-14_intro2tidymodels.html</loc>
-    <lastmod>2022-10-25T02:57:22.062Z</lastmod>
-  </url>
-  <url>
-    <loc>https://learniningwithsckinta.netlify.app/posts.html</loc>
-    <lastmod>2022-10-25T03:04:12.311Z</lastmod>
-  </url>
-  <url>
-    <loc>https://learniningwithsckinta.netlify.app/notes.html</loc>
-    <lastmod>2022-10-25T02:57:22.897Z</lastmod>
-  </url>
-  <url>
-    <loc>https://learniningwithsckinta.netlify.app/index.html</loc>
-    <lastmod>2022-10-25T03:04:09.748Z</lastmod>
+    <lastmod>2022-10-25T03:15:01.911Z</lastmod>
   </url>
   <url>
     <loc>https://learniningwithsckinta.netlify.app/posts/2019-09-04_network_analysis_part3.html</loc>
-    <lastmod>2022-10-25T03:04:34.832Z</lastmod>
+    <lastmod>2022-10-25T03:15:02.577Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2020-06-25_data_table.html</loc>
+    <lastmod>2022-10-25T03:15:03.137Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2021-11-02_tidyTues_ultraRace.html</loc>
+    <lastmod>2022-10-25T03:15:03.733Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2019-07-11_network_analysis_part1.html</loc>
+    <lastmod>2022-10-25T03:15:04.296Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2020-02-11_all_about_git.html</loc>
+    <lastmod>2022-10-25T03:15:04.883Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2020-8-22_options.html</loc>
+    <lastmod>2022-10-25T03:15:08.781Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2019-08-24_network_analysis_part2.html</loc>
+    <lastmod>2022-10-25T03:15:11.952Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts/2020-03-30_shinyapp_tips.html</loc>
+    <lastmod>2022-10-25T03:15:12.483Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/talks.html</loc>
+    <lastmod>2022-10-25T03:15:12.719Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/talks/2022-07-14_intro2tidymodels.html</loc>
+    <lastmod>2022-10-25T03:15:12.967Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/index.html</loc>
+    <lastmod>2022-10-25T03:15:13.229Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/posts.html</loc>
+    <lastmod>2022-10-25T03:15:13.757Z</lastmod>
+  </url>
+  <url>
+    <loc>https://learniningwithsckinta.netlify.app/notes.html</loc>
+    <lastmod>2022-10-25T03:15:14.170Z</lastmod>
   </url>
 </urlset>
