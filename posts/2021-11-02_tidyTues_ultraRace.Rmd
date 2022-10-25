@@ -4,6 +4,7 @@ date: "2021-11-02"
 categories: ["R", "tidyTuesday", "tidymodels"]
 params:
   data_date: '2021-10-26'
+image: 'https://mydreamsymbolism.com/wp-content/uploads/2017/11/Dreaming-about-running-with-someone.jpg'
 ---
 
 ```{r setup, include=FALSE}

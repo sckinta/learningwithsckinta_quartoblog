@@ -2,6 +2,7 @@
 title: 'ML pipeline with tidymodels vs. caret'
 date: "2020-04-30"
 categories: ["R", "ML", "tidymodels"]
+image: 'https://cdn2.stylecraze.com/wp-content/uploads/2013/12/13-Incredible-Benefits-Of-Carrots-You-Must-Know-Today.jpg'
 ---
 
 ```{r setup, include=FALSE}

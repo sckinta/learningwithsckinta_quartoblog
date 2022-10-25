@@ -3,9 +3,7 @@ title: 'All about git'
 author: "Sckinta"
 date: "2020-02-11"
 categories: ["bash", "git"]
-output: 
-  blogdown::html_page:
-          toc: false
+image: 'https://www.cursoemvideo.com/wp-content/uploads/2020/04/git-1.png'
 ---
 
 ```{r setup, include=FALSE}

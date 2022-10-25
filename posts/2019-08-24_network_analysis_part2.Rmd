@@ -7,7 +7,7 @@ execute:
   warning: false
   message: false
   code-overflow: wrap
-image: "../_site/posts/2019-08-24_network_analysis_part2_files/figure-html/community-1.png"
+image: "https://www.yworks.com/assets/images/landing-pages/demo-clustering-biconnected-components.c7bcb893be.png"
 ---
 
 ```{r setup, include=FALSE}
