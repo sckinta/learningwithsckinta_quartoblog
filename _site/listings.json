@@ -1,15 +1,15 @@
 [
   {
-    "listing": "/index.html",
-    "items": [
-      "/posts/2019-09-04_network_analysis_part3.html",
-      "/posts/2019-08-24_network_analysis_part2.html",
-      "/posts/2019-07-11_network_analysis_part1.html"
-    ]
-  },
-  {
     "listing": "/posts.html",
     "items": [
+      "/posts/2022-02-28-glm_coefficients.html",
+      "/posts/2022-01-18-chocolate.html",
+      "/posts/2021-11-02_tidyTues_ultraRace.html",
+      "/posts/2020-8-22_options.html",
+      "/posts/2020-06-25_data_table.html",
+      "/posts/2020-04-30_caret_vs_tidymodels.html",
+      "/posts/2020-03-30_shinyapp_tips.html",
+      "/posts/2020-02-11_all_about_git.html",
       "/posts/2019-09-04_network_analysis_part3.html",
       "/posts/2019-08-24_network_analysis_part2.html",
       "/posts/2019-07-11_network_analysis_part1.html"

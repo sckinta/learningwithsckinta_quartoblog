@@ -7,7 +7,7 @@ execute:
   warning: false
   message: false
   code-overflow: wrap
-image: "https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png"
+image: "../_site/posts/2019-08-24_network_analysis_part2_files/figure-html/community-1.png"
 ---
 
 ```{r setup, include=FALSE}

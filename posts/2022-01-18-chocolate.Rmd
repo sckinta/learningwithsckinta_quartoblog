@@ -1,0 +1,491 @@
+---
+title: "TidyTuesday: predict chocolate rating with xgboost"
+date: "2022-01-23"
+categories: ["R", "tidyTuesday", "tidymodels"]
+image: 'https://www.history.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_1200/MTc3OTk5Njc1MTU5MjI1OTY1/valentines-day-chocolate-gettyimages-923430892.jpg'
+params:
+  data_date: '2022-01-18'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+ggplot2::theme_set(ggplot2::theme_bw())
+
+# parems set
+year <- lubridate::year(lubridate::ymd(params$data_date))
+readme_link <- paste0("https://github.com/rfordatascience/tidytuesday/blob/master/data/", year,"/",params$data_date, "/readme.md")
+
+# load data
+tuesdata <- tidytuesdayR::tt_load(params$data_date)
+```
+
+Load required libraries
+
+```{r lib, message=F}
+library(tidyverse)
+library(tidymodels)
+# library(lubridate)
+library(vip)
+```
+
+Data README is available at [here](%60r%20readme_link%60).
+
+## Clean Data
+
+```{r}
+chocolate_raw <- tuesdata$chocolate
+chocolate_raw <- chocolate_raw %>% 
+    mutate(cocoa_percent = parse_number(cocoa_percent)) %>% 
+    separate(ingredients, c("ingredient_num","ingredients"), sep="-") %>% 
+    mutate(
+        ingredient_num=parse_number(ingredient_num),
+        ingredients=str_trim(ingredients)
+    ) %>% 
+    mutate(ingredients = map(ingredients, ~str_split(.x, ",")[[1]])) %>% 
+    mutate(most_memorable_characteristics=map(most_memorable_characteristics, ~str_split(.x,",")[[1]])) %>% 
+    mutate(most_memorable_characteristics=map(most_memorable_characteristics, ~str_trim(.x))) %>% 
+    # select(cocoa_percent, ingredient_num, ingredients, most_memorable_characteristics) %>%
+    I()
+```
+
+-   Convert gredients to boolean columns
+
+using `unnest` to spread out the list column `ingredients`.
+
+```{r}
+gredients <- chocolate_raw %>% 
+    mutate(line_n = row_number()) %>% 
+    select(line_n, ingredients) %>% 
+    unnest(cols=c(ingredients)) %>% 
+    mutate(tmp=1) %>% 
+    pivot_wider(names_from=ingredients, values_from=tmp) %>% 
+    select(-"NA") %>% 
+    janitor::clean_names() %>% 
+    mutate_at(vars(-line_n), ~ifelse(is.na(.x),0,.x)) %>% 
+    I()
+```
+
+-   Convert most_memorable_characteristics to boolean columns
+
+```{r}
+most_memorable_characteristics <- chocolate_raw %>% 
+    mutate(line_n = row_number()) %>% 
+    select(line_n, most_memorable_characteristics) %>% 
+    unnest(cols=c(most_memorable_characteristics)) %>% 
+    mutate(tmp=1) %>% 
+    # distinct(most_memorable_characteristics) %>% 
+    # pivot_wider(names_from=most_memorable_characteristics, values_from=tmp) %>% 
+    I()
+```
+
+There are 972 most_memorable_characteristics in total
+
+```{r}
+most_memorable_characteristics %>% 
+    # mutate(most_memorable_characteristics = fct_lump_min(most_memorable_characteristics, min=100)) %>% 
+    group_by(most_memorable_characteristics) %>% 
+    count(sort=T) %>% 
+    head(20) %>% 
+    ggplot(aes(x=n, y=reorder(most_memorable_characteristics,n))) +
+    geom_col() +
+    geom_text(aes(label=n), color="white", hjust=1) +
+    theme_bw() +
+    labs(x="# of chocolates", y="most memorable characteristics")
+```
+
+Pick top 12 most_memorable_characteristics to convert to boolean column
+
+```{r}
+most_memorable_characteristics <- most_memorable_characteristics %>% 
+    mutate(most_memorable_characteristics = fct_lump_min(most_memorable_characteristics, min=100)) %>% 
+    distinct() %>% 
+    pivot_wider(names_from=most_memorable_characteristics, values_from=tmp) %>% 
+    mutate_at(vars(-line_n), ~ifelse(is.na(.x),0,.x))
+
+```
+
+-   create chocolate_clean data
+
+```{r}
+chocolate_clean <-
+    chocolate_raw %>% 
+    mutate(line_n=row_number()) %>% 
+    select(-ingredients, -most_memorable_characteristics) %>% 
+    left_join(gredients) %>%
+    left_join(most_memorable_characteristics) %>%
+    I()
+```
+
+## Explore Data
+
+Several features are explored in terms of their association with rating.
+
+-   `country_of_bean_origin`
+
+```{r}
+chocolate_clean %>% 
+    mutate(country_of_bean_origin = fct_lump(country_of_bean_origin, n=10)) %>% 
+    ggplot(aes(x=rating, y=country_of_bean_origin)) +
+    geom_boxplot(aes(fill=country_of_bean_origin)) +
+    theme_bw()
+```
+
+Blend and non-blend on `country_of_bean_origin` shows big difference, thus we convert `country_of_bean_origin` to `country_of_bean_origin_blend`
+
+```{r}
+chocolate_clean <- chocolate_clean %>% 
+    mutate(country_of_bean_origin_blend = ifelse(country_of_bean_origin=="Blend", country_of_bean_origin, "Non-blend"))
+```
+
+-   `company_manufacturer` and `company_location`
+
+```{r}
+chocolate_clean %>% 
+    mutate(company_manufacturer = fct_lump(company_manufacturer, prop=0.01)) %>% 
+    ggplot(aes(x=rating, y=reorder(company_manufacturer, rating, median))) +
+    geom_boxplot(aes(fill=company_manufacturer)) +
+    theme_bw() +
+    labs(y="company_manufacturer")
+```
+
+```{r}
+chocolate_clean %>% 
+    mutate(company_location = fct_lump(company_location, n=5)) %>% 
+    ggplot(aes(x=rating, y=reorder(company_location, rating))) +
+    geom_boxplot(aes(fill=company_location)) +
+    theme_bw() +
+    labs(y="company_location")
+```
+
+-   `cocoa_percent`
+
+```{r}
+chocolate_clean %>% 
+    ggplot(aes(x=cocoa_percent, y=rating)) +
+    geom_point(aes(color=as.factor(cocoa))) +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    labs(color="cocoa as most_memorable_characteristics")
+```
+
+`rating` is not as continuous as what i originally imagined. Thus, I convert `rating` to nominal variable `rating_bl` using 3 as threshold
+
+```{r}
+chocolate_clean <- chocolate_clean %>% 
+    mutate(rating_bl = ifelse(rating >= 3, ">=3", "< 3"))
+
+chocolate_clean %>% 
+    group_by(rating_bl) %>% 
+    count()
+```
+
+```{r}
+chocolate_clean %>% 
+    ggplot(aes(x=cocoa_percent, y=rating_bl)) +
+    geom_boxplot(aes(fill=as.factor(cocoa))) +
+    theme_bw() +
+    labs(y="rating", fill="cocoa as most_memorable_characteristics") +
+    theme(legend.position = "bottom")
+```
+
+-   most_memorable_characteristics
+
+```{r}
+chocolate_clean <- chocolate_clean %>% 
+    mutate_at(vars(Other:creamy), as.factor)
+```
+
+most_memorable_characteristics like `cocoa` and `creamy` positive effect rating, while `fatty`, `earthy`, `sandy`, `sour` and `sweet` negatively effect rating.
+
+```{r}
+chocolate_clean %>% 
+    select(rating, fatty:creamy) %>% 
+    pivot_longer(!rating, names_to="most_memorable_characteristics", values_to="yes") %>%
+    ggplot(aes(y=reorder(most_memorable_characteristics, rating, FUN=median), x=rating)) +
+    geom_boxplot(aes(fill=yes)) +
+    theme_bw() +
+    theme(
+        legend.position = "bottom"
+    ) +
+    scale_fill_discrete(labels = c("0"="No", "1"="Yes")) +
+    labs(y="most_memorable_characteristics", fill="is most_memorable_characteristics?") +
+    NULL
+```
+
+-   ingredients
+
+```{r}
+chocolate_clean <- 
+    chocolate_clean %>% 
+    dplyr::rename(igrdt_beans=b, igrdt_sugar=s, igrdt_cocoa=c, igrdt_lecithin=l, igrdt_vanilla=v, igrdt_salt=sa, igrdt_sweeter=s_2) %>% 
+    mutate_at(vars(contains("igrdt_")), as.factor)
+```
+
+ingredient number `ingredient_num` between 2-3 are associated with higher rating.
+
+```{r}
+chocolate_clean %>% 
+    mutate(ingredient_num=as.factor(ingredient_num)) %>% 
+    filter(!is.na(ingredient_num)) %>% 
+    ggplot(aes(x = ingredient_num, y=rating)) +
+    geom_boxplot()
+```
+
+ingrediants like `beans` and `sugar` positively effect rating, while `vanilla`, `sweeter` and `salt` negatively effect rating.
+
+```{r}
+chocolate_clean %>% 
+    select(rating, contains("igrdt_")) %>% 
+    pivot_longer(!rating, names_to="ingredients", values_to="yes") %>%
+    mutate(ingredients = gsub("igrdt_","",ingredients)) %>% 
+    ggplot(aes(y=reorder(ingredients, rating, FUN=median), x=rating)) +
+    geom_boxplot(aes(fill=yes)) +
+    theme_bw() +
+    theme(
+        legend.position = "bottom"
+    ) +
+    scale_fill_discrete(labels = c("0"="No", "1"="Yes")) +
+    labs(y="ingredients", fill="contain the ingredient?") +
+    NULL
+```
+
+## ML
+
+Based on the exploratory analysis, to study the effect on overall rating of chocolates, the following features are selected for building ML models. Plus, using nominal feature `rating_bl` instead of numeric feature `rating` as outcome.
+
+```{r}
+chocolate_df <- chocolate_clean %>% 
+    select(rating_bl, company_manufacturer, country_of_bean_origin_blend, cocoa_percent, ingredient_num, contains('igrdt_'), cocoa, creamy, fatty, earthy, sandy, sour, sweet) %>% 
+    select(-igrdt_cocoa, -igrdt_lecithin) %>% 
+    na.omit()
+```
+
+### split samples
+
+-   `initial_split`
+
+```{r}
+set.seed(123)
+chocolate_split <- initial_split(chocolate_df, strata = rating_bl)
+chocolate_train <- training(chocolate_split)
+chocolate_testing <- testing(chocolate_split)
+```
+
+-   resample
+
+```{r}
+set.seed(123)
+folds <- vfold_cv(chocolate_train, v = 10)
+folds
+```
+
+### recipe
+
+```{r}
+chocolate_rec <- 
+    recipe(rating_bl ~ ., data = chocolate_train) %>% 
+    step_other(company_manufacturer, threshold=0.01, other="otherCompany") %>% 
+    # step_mutate_at(c("company_manufacturer","country_of_bean_origin_blend", "rating_bl"), fn = ~as.factor(.x)) %>% 
+    step_dummy(all_nominal_predictors()) %>% 
+    step_zv(all_predictors())
+
+chocolate_rec
+```
+
+check preprocessed data.frame
+
+```{r}
+chocolate_rec %>% 
+    prep(new_data = NULL) %>% 
+    juice()
+```
+
+### grid tune xgboost
+
+-   create model `boost_tree`
+
+Details about `boost_tree` can be found https://parsnip.tidymodels.org/reference/details_boost_tree_xgboost.html
+
+*require library `xgboost` installed.*
+
+```{r}
+xg_spec <- 
+    boost_tree(
+        mtry=tune(), # the number (or proportion) of predictors that will be randomly sampled
+        min_n=tune() # minimum number of data points in a node
+    ) %>% 
+    set_engine("xgboost") %>% # importance="permutation"
+    set_mode('classification')
+```
+
+-   define grid
+
+`grid_max_entropy`, `grid_regular`, `grid_random` can be used for quickly specify levels for tuned hyperparameters.
+
+be aware that `mtry` usually requires `range` parameters, it usually contains the `sqrt(predictor_num)`
+
+```{r}
+xg_grid <- grid_regular(
+    mtry(range = c(3, 10)),
+    min_n(),
+    levels = 5 # each tune how many levels
+)
+
+xg_grid
+```
+
+-   create workflow
+
+```{r}
+xg_wf <- workflow() %>% 
+    add_model(xg_spec) %>% 
+    add_recipe(chocolate_rec)
+
+xg_wf
+```
+
+-   tune model to get result
+
+```{r}
+system.time(
+    xg_res <- 
+        xg_wf %>% 
+        tune_grid(
+            resamples = folds,
+            grid = xg_grid
+            )
+    )
+```
+
+-   evaluate models
+
+```{r}
+xg_res %>% 
+    collect_metrics() %>% 
+    ggplot(aes(x = min_n, y=mean, color=as.factor(mtry))) +
+    facet_wrap(~.metric, scales="free") +
+    geom_point() +
+    geom_line(aes(group=as.factor(mtry))) +
+    theme_bw() +
+    labs(y="metrics estimate", x='minimum number of data points in a node (min_n)', color='the number of predictors that will be randomly sampled (mtry)') +
+    theme(legend.position = "bottom")
+```
+
+-   select hyperparameters and finalize wf
+
+`show_best(metric = )` allows to see the top 5 from `xg_res %>% collect_metrics()`
+
+`select_best`, `select_by_pct_loss`, `select_by_one_std_err` select hyperparameters and corresponding `.config` to a tibble.
+
+```{r}
+xg_tune_hy <- xg_res %>% 
+    select_best(metric = "accuracy")
+
+xg_tune_hy
+```
+
+finalize model using selected hyperparameters
+
+```{r}
+final_wf <- 
+  xg_wf %>% 
+  finalize_workflow(xg_tune_hy)
+
+final_wf
+```
+
+### `last_fit` model
+
+-   use `last_fit(split)`
+
+```{r}
+final_fit <- final_wf %>% 
+    last_fit(chocolate_split)
+
+final_fit
+```
+
+-   `collect_metrics` for overall data
+
+```{r}
+final_fit %>% 
+    collect_metrics()
+```
+
+metrics are comparable to training data, so not overfiting.
+
+-   `collect_predictions` for test data
+
+```{r}
+final_fit %>% 
+    collect_predictions()
+```
+
+-   `roc_auc` and `roc_curve` on test data
+
+calculate `roc_auc` manually on test data
+
+```{r}
+final_fit %>%
+  collect_predictions() %>% 
+  roc_auc(truth=rating_bl, `.pred_< 3`)
+```
+
+plot `roc_curve`
+
+```{r}
+final_fit %>%
+  collect_predictions() %>% 
+  roc_curve(truth=rating_bl, `.pred_< 3`) %>% 
+  autoplot()
+```
+
+-   `extract_workflow()` to save `final_trained_wf`
+
+```{r}
+final_trained_wf <- final_fit %>% 
+    extract_workflow()
+
+final_trained_wf
+```
+
+-   `extract_*` information from `final_trained_wf`
+
+    -   `extract_fit_engine()` is engine-specific model
+
+```{r}
+final_trained_wf %>%
+  extract_fit_engine()
+```
+
+-   `extract_fit_parsnip()` is parsnip model object
+
+```{r}
+final_trained_wf %>%
+  extract_fit_parsnip()
+```
+
+-   `extract_recipe` or `extract_preprocessing` to get recipe/preprocessing
+
+```{r}
+final_trained_wf %>% extract_preprocessor()
+```
+
+### feature importance
+
+-   `vip()` plot top 10
+-   `vi_model()` return tibble
+
+```{r}
+final_trained_wf %>%
+  extract_fit_parsnip() %>% 
+  vip()
+```
+
+## Final notes
+
+-   I convert numeric `rating` to categorical rating using threshold because, based on the exploratory analysis, the `rating` values are not continuous.
+-   The `boost_tree` did not produce good estimate for the data.
+    -   Other models, like `rand_forest()`, `logistic_reg` and `svm_linear` are worth to try.
+    -   Tuning other hyperparameters `tree_depth`, `learning_rate` and `trees` are worth to try. *I don't know which tune-able hyperparameter corresponds to regularization `gamma`*.
+-   Julia Silge posted a [screencast](https://www.youtube.com/watch?v=w-lF65hKtrQ) and [blog](https://juliasilge.com/blog/chocolate-ratings/) of using `rand_forest()` and `svm_linear` training rating as linear model on the same dataset.

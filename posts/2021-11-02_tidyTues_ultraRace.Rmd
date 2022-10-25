@@ -1,0 +1,363 @@
+---
+title: 'TidyTuesday: predict ultra race time'
+date: "2021-11-02"
+categories: ["R", "tidyTuesday", "tidymodels"]
+params:
+  data_date: '2021-10-26'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+ggplot2::theme_set(ggplot2::theme_bw())
+
+# parems set
+year <- lubridate::year(lubridate::ymd(params$data_date))
+readme_link <- paste0("https://github.com/rfordatascience/tidytuesday/blob/master/data/", year,"/",params$data_date, "/readme.md")
+
+# load data
+tuesdata <- tidytuesdayR::tt_load(params$data_date)
+```
+
+Load required libraries
+
+```{r lib, message=F}
+library(tidyverse)
+library(tidymodels)
+library(lubridate)
+```
+
+## data skim
+
+Data README is available at [here](%60r%20readme_link%60).
+
+```{r}
+
+ultra_rankings <- tuesdata$ultra_rankings
+race <- tuesdata$race
+
+ultra_join <-
+    ultra_rankings %>% 
+    left_join(race, by="race_year_id")
+```
+
+```{r}
+skimr::skim(ultra_join)
+```
+
+## EDA
+
+We want to estimate the time (time_in_seconds) for runner to finish based on the features.
+
+### the effect of gender and age
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    filter(!is.na(gender)) %>% 
+    filter(age > 10, age < 100) %>% 
+    mutate(age_decade = 5* (age %/% 5)) %>% 
+    select(time_in_seconds, gender, age, age_decade) %>% 
+    group_by(age_decade, gender) %>% 
+    summarise(
+        time_in_seconds_sd = sd(time_in_seconds),
+         time_in_seconds = mean(time_in_seconds)
+    ) %>% 
+    ggplot(aes(x = age_decade, color=gender, group=gender)) +
+    geom_point(aes(y=time_in_seconds)) +
+    geom_line(aes(y=time_in_seconds)) +
+    geom_errorbar(aes(ymin=time_in_seconds - time_in_seconds_sd, ymax=time_in_seconds + time_in_seconds_sd), width=0.2, alpha=0.7) +
+    scale_color_viridis_d() +
+    labs(x = "age", y = "time (second)") +
+    scale_y_continuous(labels = scales::label_comma())
+```
+
+### the effect of nationality, age, gender
+
+```{r}
+ultra_join %>% 
+    mutate(nationality = fct_lump(nationality, prop=0.05)) %>% 
+    count(nationality, sort=TRUE) 
+```
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    filter(!is.na(gender)) %>% 
+    filter(age > 10, age < 100) %>% 
+    mutate(nationality = fct_lump(nationality, prop=0.05)) %>% 
+    ggplot(aes(x = age, fill=nationality), group=nationality) +
+    facet_wrap(vars(gender)) +
+    geom_bar(stat="density", alpha=0.5)
+```
+
+nationality
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    filter(!is.na(gender)) %>% 
+    filter(age > 10, age < 100) %>% 
+    mutate(nationality = fct_lump(nationality, prop=0.05)) %>% 
+    ggplot(aes(x=fct_reorder(nationality, time_in_seconds), y=time_in_seconds, fill=nationality)) +
+    geom_boxplot() +
+    scale_fill_viridis_d() +
+    labs(x="runner's nationality", fill=NULL, y="time (second)") +
+    scale_y_continuous(labels = scales::label_comma())
+```
+
+### effect of distance
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    filter(distance >= 150) %>% 
+    ggplot(aes(x=distance, y=time_in_seconds)) +
+    geom_point(alpha=0.1, size=1) +
+    geom_smooth() +
+    labs(y="time (second)") +
+    scale_y_continuous(labels = scales::label_comma())
+```
+
+### effect of elevation
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    filter(distance >= 150) %>% 
+    mutate(elevation = ifelse(
+        elevation_gain > abs(elevation_loss), elevation_gain,  abs(elevation_loss)
+        )) %>% 
+    ggplot(aes(x=elevation , y=time_in_seconds)) +
+    geom_point(alpha=0.1, size=1) +
+    geom_smooth() +
+    labs(y="time (second)") +
+    scale_y_continuous(labels = scales::label_comma())
+   
+```
+
+### effect of date
+
+The year of the race
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    mutate(
+        race_year=lubridate::year(date), 
+        race_month=lubridate::month(date)
+    ) %>% 
+    group_by(race_year) %>% 
+    summarise(
+        time_in_seconds_sd=mean(time_in_seconds),
+        time_in_seconds=mean(time_in_seconds)
+    ) %>% 
+    ungroup() %>% 
+    ggplot(aes(x=race_year, y=time_in_seconds)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=time_in_seconds - time_in_seconds_sd, ymax=time_in_seconds + time_in_seconds_sd), alpha=0.5)
+```
+
+The month of race can be the proxy to estimate the season when race was hosted. However, here I did not take the geographic information (hemisphere) into consideration.
+
+```{r}
+ultra_join %>% 
+    filter(!is.na(time_in_seconds)) %>% 
+    mutate(
+        race_year=lubridate::year(date), 
+        race_month=lubridate::month(date)
+    ) %>% 
+    group_by(race_month) %>% 
+    summarise(
+        time_in_seconds_sd=mean(time_in_seconds),
+        time_in_seconds=mean(time_in_seconds)
+    ) %>% 
+    ungroup() %>% 
+    ggplot(aes(x=race_month, y=time_in_seconds)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=time_in_seconds - time_in_seconds_sd, ymax=time_in_seconds + time_in_seconds_sd), alpha=0.5)
+```
+
+## learning models
+
+Here I will perform two distinct models -- linear regression and random forest to predict the race time using runner's gender, age, nationality, elevation and distance of race.
+
+### data budget
+
+inistal split to train and test
+
+```{r}
+ultra_df <- ultra_join %>% 
+  filter(!is.na(time_in_seconds)) %>% 
+  filter(!is.na(gender)) %>% 
+  filter(age > 10, age < 100) %>% 
+  filter(distance >= 150) %>% 
+  mutate(elevation = ifelse(
+        elevation_gain > abs(elevation_loss), 
+        elevation_gain,
+        abs(elevation_loss)
+        )
+  ) %>% 
+  select(time_in_seconds, age, gender, nationality, distance, elevation)
+
+set.seed(2021)
+ultra_split <- initial_split(ultra_df, strata = time_in_seconds)
+ultra_train <- training(ultra_split)
+ultra_test <- testing(ultra_split)
+```
+
+create resamples for cross validation
+
+```{r}
+set.seed(124)
+ultra_folds <- vfold_cv(ultra_train, v=10)
+```
+
+### recipes for feature engineer
+
+```{r}
+ultra_rec <- recipe(time_in_seconds ~., data = ultra_train) %>% 
+  step_other(nationality) %>% 
+  step_normalize(all_numeric_predictors()) %>% 
+  step_string2factor(all_nominal_predictors()) %>% 
+  # step_dummy(all_nominal_predictors()) %>% 
+  I()
+
+# want to test whether dummy variables affect the model behave
+ind_rec <- ultra_rec %>% 
+  step_dummy(all_nominal_predictors())
+```
+
+### fit linear model
+
+specify models
+
+```{r}
+lm_spec <- linear_reg() %>% 
+  set_engine('lm') %>% 
+  set_mode('regression')
+```
+
+Does linear model need dummy variable? Using `workflow_set` to test
+
+```{r}
+lm_wf <- workflow_set(
+  preproc = list("nodummy"=ultra_rec, "dummy"=ind_rec),
+  models = list(lm_spec)
+)
+
+lm_rs <- workflow_map(
+  lm_wf, 'fit_resamples', resamples=ultra_folds
+  )
+
+lm_rs %>% collect_metrics()
+```
+
+Based on the r-square value, the linear model with age, distance, elevation, gender and nationality explained \~57% variance of time_in_seconds.
+
+Using dummy variable or not does not change the metrics. In fact, the number of coefficients will be exactly same no matter whether using dummy or not. Below shows coefficients of linear regression by fitting the "nodummy_linear_reg" workflow to the training data.
+
+```{r}
+lm_coef <- lm_rs %>% 
+  extract_workflow('nodummy_linear_reg') %>% 
+  fit(ultra_train) %>% 
+  tidy()
+
+lm_coef
+```
+
+```{r}
+lm_coef %>% 
+  filter(term!="(Intercept)") %>% 
+  ggplot(aes(x = estimate, y = fct_reorder(term, estimate))) +
+  geom_col(aes(fill=(estimate < 0)), alpha = 0.5) +
+  geom_errorbar(aes(xmin=estimate - std.error, xmax = estimate + std.error), width=0.5) +
+  theme(legend.position = 'none') +
+  labs(fill=NULL, y = NULL)
+```
+
+Elevation, being a women (compare to being a men), age and distance positively affect race time, while racers from JPN/GBR/USA/other (compare to racers from FRA) finish the race in shorter time.
+
+### fit random forest model using workflow
+
+Using random forest as model to get Resampling results
+
+```{r}
+rf_spec <- rand_forest() %>% 
+  set_engine('ranger') %>% 
+  set_mode('regression')
+
+rf_wf <- workflow() %>% 
+  add_model(rf_spec) %>% 
+  add_recipe(ultra_rec)
+
+# resample evaluate 
+rf_rs  <- rf_wf %>% 
+  fit_resamples(
+    resamples = ultra_folds
+  )
+```
+
+```{r}
+rf_rs  %>% 
+  collect_metrics()
+```
+
+Compared to linear model shown above, random forest with same predictors can explain more variance of Y (74% vs. 56%) and show smaller rmse (1.8e4 vs. 2.4e4).
+
+```{r}
+bind_rows(
+  rf_rs  %>% 
+    collect_metrics() %>% 
+    select(.metric, mean, std_err) %>% 
+    mutate(model = "random forest"),
+  lm_rs  %>% 
+    collect_metrics() %>% 
+    filter(wflow_id == 'nodummy_linear_reg') %>% 
+    select(.metric, mean, std_err) %>% 
+    mutate(model = "linear reg")
+) %>% 
+  ggplot(aes(x = model, y = mean)) +
+  facet_wrap(vars(.metric), scales = 'free') +
+  geom_point() +
+  geom_errorbar(aes(ymin=mean - std_err, ymax=mean + std_err), width=0)
+```
+
+Notes: above plot can also be done by autoplot if we perform the comparison between linear regression and random forest models using `workflow_set`.
+
+### `last_fit` test data using random forest result
+
+```{r}
+rf_final_rs <- rf_wf %>% 
+  last_fit(ultra_split)
+```
+
+```{r}
+rf_final_rs %>% 
+  collect_metrics()
+```
+
+Different from `fit_resample` results, these metrics are calculated on the test data. The value is very close to the values done on training data (resample data), thus the model is not over-fitted.
+
+```{r}
+final_wf <- rf_final_rs %>% 
+  extract_workflow()
+
+final_wf
+```
+
+The above **trained** workflow from `last_fit` can be saved in `.rda` for future prediction
+
+```{r}
+# using final_wf for prediction
+final_wf %>% 
+  predict(new_data = ultra_train %>% dplyr::slice(1)) 
+```
+
+## what techniques i learned
+
+-   deal with high-levels nominal features (`fct_lump` and `step_other`) in EDA and modeling
+-   `workflow_set` and `map_workflow` to create multiple workflows for model and/or recipes comparison.
+-   `fit_resample` for cross-validation. The metrics collected from cross-validation results are used for workflow comparison.
+-   `last_fit` model and save **trained** workflow for future use

@@ -1,0 +1,281 @@
+---
+title: 'Transition from dplyr to data.table'
+date: "2020-06-25"
+categories: ["R", "data wrangle"]
+output: 
+  blogdown::html_page:
+          toc: false
+image: 'https://raw.githubusercontent.com/Rdatatable/data.table/master/.graphics/logo.png'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(tidyverse)
+```
+
+`dplyr` and `tidyr` have totally changed the way we code in R. I particularly love the pipe `%>%` which comes from `magrittr` package and makes the code easy to read and understand. While I am obessed with simplicity of `dplyr` coding style, I am also fascinated with how fast `data.table` wrangles data. Below is an example showing the speed difference using `dplyr` and `data.table` in a user function `gene_lookup` for one of my shiny app. 
+
+```{r, eval=F}
+# dplyr version
+system.time({
+        old_result = gene_lookup_old(gene_frag, open_frag, frag_int, my_gene_id, open_oe_only, selected_cells)
+})
+# user  system elapsed 
+# 2.727   0.122   2.898  
+```
+
+
+```{r, eval=F}
+# data.table version
+system.time({
+        new_result = gene_lookup(gene_frag, open_frag, frag_int, my_gene_id, open_oe_only, selected_cells)
+})
+# user  system elapsed 
+# 0.505   0.054   0.293 
+```
+
+Last year, Hadley Wickham and  his team launched a hybrid package [`dtplyr`](https://github.com/tidyverse/dtplyr) which uses the syntax of `dplyr` but runs `data.table` on the backend. It is a brilliant idea and I believe a lot of dplyr fan would love it, but dtplyr is still slower than data.table. Considering speed is the highest priority in some applications, I would like to switch to data.table completely. It took me only half day to get used to data.table syntax anyway. Plus, [this post](https://martinctc.github.io/blog/using-data.table-with-magrittr-pipes-best-of-both-worlds/), which shows using pipe in data.table, makes this transition more smooth and pleasant.
+
+In this blog, I will list `data.table` and `dplyr`/`tidyr` syntax back to back, providing an easy reference for dplyr users who want to quickly pick up `data.table`.
+
+### read file
+`read_delim` and `read_csv` are the two functions commonly used to read-in data from `dplyr`
+
+```{r, message=F, warning=F}
+untidy_mtcars_df = read_delim("https://raw.githubusercontent.com/sckinta/example_code/master/data_examples/untidy_mtcars1.csv", delim=",")
+untidy_mtcars_df = read_csv("https://raw.githubusercontent.com/sckinta/example_code/master/data_examples/untidy_mtcars1.csv")
+class(untidy_mtcars_df)
+```
+
+The equivalent command in `data.table` is `fread`. Like "read_delim", `fread` automatically searches for header and defines column data type, but it is faster and automatically searches for separators as well.
+
+```{r, message=F, warning=F}
+untidy_mtcars_dt = fread("https://raw.githubusercontent.com/sckinta/example_code/master/data_examples/untidy_mtcars1.csv")
+class(untidy_mtcars_dt)
+```
+
+To switch between tibble and data.table class, use `tbl_df` to convert data.table to tibble, and `as.data.table()` to convert tibble/data.frame to data.table.
+
+### subset rows
+Subsetting rows is done by the function `filter` from `dplyr`. 
+
+```{r, message=F, results = 'hide'}
+# subset Merc cars 
+untidy_mtcars_df %>% 
+  filter(grepl("Merc",model))
+```
+
+Subsetting rows in `data.table` is very similar to the base R, placing boolean vector at row index. The index separator `,` can even be omitted. Also if boolean expression contains column variables, we can use the variable names directly instead of using df$var.
+
+Pipe can be used in the format of ` %>% .[]` to connect the code.
+
+```{r, message=F, results = 'hide'}
+# subset Merc cars 
+untidy_mtcars_dt %>% 
+  .[grepl("Merc",model)]
+```
+
+### subset columns
+Subsetting columns is done by the function `select` from `dplyr`
+
+```{r, message=F, results = 'hide'}
+# subset columns -- model, mpg, cyl
+untidy_mtcars_df %>% 
+  select(model, mpg, cyl)
+
+# de-select columns with partial names "ar"
+untidy_mtcars_df %>% 
+  select(-contains("ar"))
+```
+
+`data.table` uses variable names to subset columns. Like base R, the variable name vector is a character class placed at column index position. Index separator `,` cannot be omitted here.
+
+```{r, message=F, results = 'hide'}
+# subset columns -- model, mpg, cyl
+untidy_mtcars_dt %>% 
+  .[,c("model","mpg","cyl")]
+
+# de-select columns with partial names "ar"
+col_ar = colnames(untidy_mtcars_dt)[grepl("ar",colnames(untidy_mtcars_dt))]
+untidy_mtcars_dt %>% 
+  .[,-..col_ar]
+```
+
+### add new variable
+`dplyr` uses `mutate` to add column.
+```{r, eval=F}
+# assign car size based on the weight
+untidy_mtcars_df %>% 
+  mutate(size=case_when(
+    wt < 3 ~ "small",
+    wt > 3 & wt < 5 ~ "median",
+    wt > 5 ~ "large"
+  ))
+```
+
+`data.table` uses `:=` to assign values to column variables. Be aware that, different from `mutate` which returns the updated data frame without assignment, data.table is modified by reference and returned invisibly when `:=` or any `set*` functions are used. If you do not want to change the original data.table, take a copy first `DT2 = copy(DT)`.
+
+```{r, eval=F}
+untidy_mtcars_dt2=copy(untidy_mtcars_dt)
+untidy_mtcars_dt2 %>% 
+  .[,size:=case_when(wt < 3 ~ "small",
+    wt > 3 & wt < 5 ~ "median",
+    wt > 5 ~ "large")]
+```
+
+`:=` can also be used for multiple column assignment and functional form. More details refer to the [usage manual](https://www.rdocumentation.org/packages/data.table/versions/1.12.8/topics/%3A%3D)
+
+### pivot 
+Table pivoting is done by the functions `spread` and `gather` (or  `pivot_wider` and `pivot_longer`) from `tidyr`.
+
+```{r, message=F}
+# wide to long (gather) -- combine automatic, manual two columns into transmission
+tidy_mtcars_df = untidy_mtcars_df %>% 
+  gather(key="transmission",value="tmp",automatic,manual) %>% 
+  filter(tmp==1) %>% 
+  select(-tmp)
+
+# wide to long (pivot_longer) -- combine automatic, manual two columns into transmission
+untidy_mtcars_df %>% 
+  pivot_longer(cols=c("automatic","manual"),names_to="transmission",values_to="tmp") %>% 
+  filter(tmp==1) %>% 
+  select(-tmp)
+
+# long to wide (spread) -- make transmission to group automatic and manual
+tidy_mtcars_df %>% 
+  mutate(tmp=1) %>% 
+  spread(transmission, tmp) %>% 
+  mutate_if(function(x){any(is.na(x))}, function(x){ifelse(is.na(x),0,1)})
+
+# long to wide (pivot_wider) -- 
+tidy_mtcars_df %>% 
+  mutate(tmp=1) %>% 
+  pivot_wider(names_from=transmission, values_from=tmp) %>% 
+  mutate_if(function(x){any(is.na(x))}, function(x){ifelse(is.na(x),0,1)})
+
+```
+
+The `data.table` uses `dcast` for long-to-wide and `melt` for wide-to-long pivoting.
+
+```{r, message=F}
+# wide to long (melt) -- combine automatic, manual two columns into transmission
+tidy_mtcars_dt = untidy_mtcars_dt %>% 
+  melt(measure.vars=c("automatic","manual"), variable.name="transmission", value.name="tmp") %>% 
+  .[tmp==1] %>% 
+  .[,-c("tmp")]
+
+# long to wide (dcast) -- split transmission column to automatic manual
+tidy_mtcars_dt %>% 
+  .[, tmp:=1]
+
+untidy_mtcars_dt = tidy_mtcars_dt %>%   
+  dcast(model + mpg + cyl + disp + hp + drat + wt + qsec + vs + gear + carb ~transmission, value.var="tmp")
+
+untidy_mtcars_dt %>% 
+  .[, c("manual","automatic") := replace(.SD,is.na(.SD),0), .SDcols=c("manual","automatic")]
+```
+
+
+### merge
+`dplyr` uses SQL-like join functions to merge two or more tables together. There are `inner_join`, `full_join`, `left_join`, `right_join`, `semi_join` and `anti_join`. 
+
+```{r, eval=F}
+# generate two tables
+tidy_mtcars_df_engine = tidy_mtcars_df %>% 
+  select(model, mpg, cyl, hp, vs)
+tidy_mtcars_df_other = tidy_mtcars_df %>% 
+  select(model, disp, qsec, transmission, gear, carb)
+
+# left_join
+left_join(
+  tidy_mtcars_df_engine,
+  tidy_mtcars_df_other
+)
+```
+
+`data.table`, from the other end, use `merge` for all the joins. By default, `merge` is `inner_join`, but we can adjust `by` variables to fulfill other join functions.
+
+```{r, eval=F}
+tidy_mtcars_dt_engine = tidy_mtcars_df_engine %>% as.data.table()
+tidy_mtcars_df_other = tidy_mtcars_df_other %>% as.data.table()
+
+# inner_join
+merge(
+  tidy_mtcars_dt_engine,
+  tidy_mtcars_df_other,
+  all=FALSE
+)
+
+# left_join
+merge(
+  tidy_mtcars_dt_engine,
+  tidy_mtcars_df_other,
+  all.x=T
+)
+
+# right_join
+merge(
+  tidy_mtcars_dt_engine,
+  tidy_mtcars_df_other,
+  all.y=T
+)
+
+# full_join
+merge(
+  tidy_mtcars_dt_engine,
+  tidy_mtcars_df_other,
+  all=T
+)
+```
+
+### group and summarize
+`dplyr` uses `group_by` and `summarize` to calculate the new variable based on the group.
+```{r}
+# calculate weight mean for each group of differrent cylinder number
+untidy_mtcars_df %>% 
+  group_by(cyl) %>% 
+  summarise(wt_mean=mean(wt)) %>% 
+  ungroup()
+```
+
+`data.table` uses `by` to specify the group, and `=` to summarize.
+```{r}
+untidy_mtcars_dt %>% 
+  .[,.(wt_mean=mean(wt)),by=cyl]
+```
+
+### group and subsetting
+`dplyr` uses `group_by` and `slice` to subset rows within the group.
+
+```{r}
+# choose the heaviest cart for each cylinder group
+untidy_mtcars_df %>% 
+  group_by(cyl) %>% 
+  slice(which.max(wt)) %>% 
+  ungroup()
+```
+
+`data.table` uses `.SD` and `by` to subset within the group.
+
+```{r}
+# choose the heaviest cart for each cylinder group
+untidy_mtcars_dt %>% 
+  .[,.SD[which.max(wt)], by=cyl]
+```
+
+For more `.SD` reading, refer to https://cran.r-project.org/web/packages/data.table/vignettes/datatable-sd-usage.html
+
+### last bits
+There are other accessory functions useful in `dplyr` and some of them have corresponding functions in `data.table` too.
+```{r, echo=F}
+other_function=tibble(
+  usage=c("get unique rows","sort by column(s)","change column names"),
+  dplyr=c("distinct()","arrange()","rename(new=old)"),
+  data.table=c("unique()","setorder()/setorderv()","setnames(old, new)")
+)
+other_function %>%
+  kableExtra::kable() %>%
+  kableExtra::kable_styling()
+```
+

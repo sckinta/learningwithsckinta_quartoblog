@@ -73,7 +73,8 @@ ul.task-list li input[type="checkbox"] {
 
     const options = {
       valueNames: ['listing-date','listing-title','listing-reading-time','listing-description','listing-image','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
+      page: 10,
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },
       searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
     };
 
@@ -114,9 +115,6 @@ ul.task-list li input[type="checkbox"] {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html">About</a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link active" href="./posts.html" aria-current="page">Posts</a>
   </li>  
   <li class="nav-item">
@@ -140,7 +138,7 @@ ul.task-list li input[type="checkbox"] {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="R">R <span class="quarto-category-count">(3)</span></div><div class="category" data-category="network">network <span class="quarto-category-count">(3)</span></div><div class="category" data-category="visualization">visualization <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(11)</span></div><div class="category" data-category="GLM">GLM <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ML">ML <span class="quarto-category-count">(1)</span></div><div class="category" data-category="R">R <span class="quarto-category-count">(10)</span></div><div class="category" data-category="bash">bash <span class="quarto-category-count">(2)</span></div><div class="category" data-category="data wrangle">data wrangle <span class="quarto-category-count">(1)</span></div><div class="category" data-category="git">git <span class="quarto-category-count">(1)</span></div><div class="category" data-category="network">network <span class="quarto-category-count">(3)</span></div><div class="category" data-category="perl">perl <span class="quarto-category-count">(1)</span></div><div class="category" data-category="shiny">shiny <span class="quarto-category-count">(1)</span></div><div class="category" data-category="tidyTuesday">tidyTuesday <span class="quarto-category-count">(2)</span></div><div class="category" data-category="tidymodels">tidymodels <span class="quarto-category-count">(4)</span></div><div class="category" data-category="visualization">visualization <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
 
@@ -158,7 +156,327 @@ ul.task-list li input[type="checkbox"] {
     </div>
 </div>
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="R,network,visualization" data-listing-date-sort="1567569600000" data-listing-file-modified-sort="1665549099312" data-listing-reading-time-sort="7.395">
+<div class="quarto-post image-right" data-index="0" data-categories="R,GLM,tidymodels" data-listing-date-sort="1646024400000" data-listing-file-modified-sort="1666667030158" data-listing-reading-time-sort="12.54">
+<div class="thumbnail">
+<p><a href="./posts/2022-02-28-glm_coefficients.html"> <img src="https://thumbs.dreamstime.com/b/cartoon-cottage-seamless-pattern-hand-drawn-home-facade-street-townhouse-family-house-countryside-urban-border-decor-202493554.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2022-02-28-glm_coefficients.html">
+<h3 class="no-anchor listing-title">
+Interpreting the coefficients of Generalized Linear Model
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('GLM'); return false;">
+GLM
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidymodels'); return false;">
+tidymodels
+</div>
+</div>
+<a href="./posts/2022-02-28-glm_coefficients.html">
+<div class="listing-description">
+Linear model is the most popular model used in various of fields, due to its simple execution and interpretation. It can be not only used to predict like all other machine learning models. but also widely used for statistical inference due to its simplicity.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2022-02-28-glm_coefficients.html">
+<div class="listing-date">
+Feb 28, 2022
+</div>
+<div class="listing-reading-time">
+12 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-categories="R,tidyTuesday,tidymodels" data-listing-date-sort="1642914000000" data-listing-file-modified-sort="1666665496439" data-listing-reading-time-sort="8.305">
+<div class="thumbnail">
+<p><a href="./posts/2022-01-18-chocolate.html"> <img src="https://www.history.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_1200/MTc3OTk5Njc1MTU5MjI1OTY1/valentines-day-chocolate-gettyimages-923430892.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2022-01-18-chocolate.html">
+<h3 class="no-anchor listing-title">
+TidyTuesday: predict chocolate rating with xgboost
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidyTuesday'); return false;">
+tidyTuesday
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidymodels'); return false;">
+tidymodels
+</div>
+</div>
+<a href="./posts/2022-01-18-chocolate.html">
+<div class="listing-description">
+Load required libraries
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2022-01-18-chocolate.html">
+<div class="listing-date">
+Jan 23, 2022
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="2" data-categories="R,tidyTuesday,tidymodels" data-listing-date-sort="1635825600000" data-listing-file-modified-sort="1666665288428" data-listing-reading-time-sort="7.04">
+<div class="thumbnail">
+<p><a href="./posts/2021-11-02_tidyTues_ultraRace.html"> <img src="https://www.savethestudent.org/uploads/start-blog.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2021-11-02_tidyTues_ultraRace.html">
+<h3 class="no-anchor listing-title">
+TidyTuesday: predict ultra race time
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidyTuesday'); return false;">
+tidyTuesday
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidymodels'); return false;">
+tidymodels
+</div>
+</div>
+<a href="./posts/2021-11-02_tidyTues_ultraRace.html">
+<div class="listing-description">
+Load required libraries
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2021-11-02_tidyTues_ultraRace.html">
+<div class="listing-date">
+Nov 2, 2021
+</div>
+<div class="listing-reading-time">
+7 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="3" data-categories="R,bash,perl" data-listing-date-sort="1598068800000" data-listing-file-modified-sort="1666664663247" data-listing-reading-time-sort="21.68">
+<div class="thumbnail">
+<p><a href="./posts/2020-8-22_options.html"> <img src="https://www.source-data.com/wp-content/uploads/2019/11/options_0.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2020-8-22_options.html">
+<h3 class="no-anchor listing-title">
+Taking options from command line
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('bash'); return false;">
+bash
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('perl'); return false;">
+perl
+</div>
+</div>
+<a href="./posts/2020-8-22_options.html">
+<div class="listing-description">
+Taking in options from command line is an essential step towards generalized usage of scripts. However, it is a chapter I skipped in almost all language textbooks since my primary goal was to code for a specific problem and did not mind re-writing the scripts in different situations.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2020-8-22_options.html">
+<div class="listing-date">
+Aug 22, 2020
+</div>
+<div class="listing-reading-time">
+21 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="4" data-categories="R,data wrangle" data-listing-date-sort="1593057600000" data-listing-file-modified-sort="1666662559795" data-listing-reading-time-sort="5.73">
+<div class="thumbnail">
+<p><a href="./posts/2020-06-25_data_table.html"> <img src="https://raw.githubusercontent.com/Rdatatable/data.table/master/.graphics/logo.png" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2020-06-25_data_table.html">
+<h3 class="no-anchor listing-title">
+Transition from dplyr to data.table
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('data wrangle'); return false;">
+data wrangle
+</div>
+</div>
+<a href="./posts/2020-06-25_data_table.html">
+<div class="listing-description">
+
+<code>dplyr</code> and <code>tidyr</code> have totally changed the way we code in R. I particularly love the pipe <code>%&gt;%</code> which comes from <code>magrittr</code> package and makes the code easy to read and understand. While I am obessed with simplicity of <code>dplyr</code> coding style, I am also fascinated with how fast <code>data.table</code> wrangles data. Below is an example showing the speed difference using <code>dplyr</code> and <code>data.table</code> in a user function <code>gene_lookup</code> for one of my shiny app.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2020-06-25_data_table.html">
+<div class="listing-date">
+Jun 25, 2020
+</div>
+<div class="listing-reading-time">
+5 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="5" data-categories="R,ML,tidymodels" data-listing-date-sort="1588219200000" data-listing-file-modified-sort="1666664826302" data-listing-reading-time-sort="12.285">
+<div class="thumbnail">
+<p><a href="./posts/2020-04-30_caret_vs_tidymodels.html"> <img src="https://www.savethestudent.org/uploads/start-blog.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2020-04-30_caret_vs_tidymodels.html">
+<h3 class="no-anchor listing-title">
+ML pipeline with tidymodels vs.&nbsp;caret
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('ML'); return false;">
+ML
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('tidymodels'); return false;">
+tidymodels
+</div>
+</div>
+<a href="./posts/2020-04-30_caret_vs_tidymodels.html">
+<div class="listing-description">
+As a DS beginner, I first came across ML in R by studying the book Hands-On Machine Learning with R. The book mainly focuses on the package <code>caret</code> with general introductions to packages like <code>recipe</code> and <code>h2o</code>. Most examples use the workflow in which feature engineering is performed by <code>recipe</code> and the modeling/learning part is done using <code>caret</code>.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2020-04-30_caret_vs_tidymodels.html">
+<div class="listing-date">
+Apr 30, 2020
+</div>
+<div class="listing-reading-time">
+12 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="6" data-categories="R,shiny" data-listing-date-sort="1585540800000" data-listing-file-modified-sort="1666664692654" data-listing-reading-time-sort="32.66">
+<div class="thumbnail">
+<p><a href="./posts/2020-03-30_shinyapp_tips.html"> <img src="https://www.acsgrp.com/sites/default/files/sb-5.png" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2020-03-30_shinyapp_tips.html">
+<h3 class="no-anchor listing-title">
+External persistent data I/O using ShinyApp
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
+R
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('shiny'); return false;">
+shiny
+</div>
+</div>
+<a href="./posts/2020-03-30_shinyapp_tips.html">
+<div class="listing-description">
+Shiny App is a fantastic application in Rstudio and makes the data processing more accessible (and fun!). Most easy shiny apps are made to represent data based on a given user input which is read into memory or temporal file by R and spit out tables or figures in the same process. However, to make an app that need to keep the user input data for persistent storage and present in the future process require some external data I/O.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2020-03-30_shinyapp_tips.html">
+<div class="listing-date">
+Mar 30, 2020
+</div>
+<div class="listing-reading-time">
+32 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="7" data-categories="bash,git" data-listing-date-sort="1581397200000" data-listing-file-modified-sort="1666662437862" data-listing-reading-time-sort="8.745">
+<div class="thumbnail">
+<p><a href="./posts/2020-02-11_all_about_git.html"> <img src="https://www.savethestudent.org/uploads/start-blog.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/2020-02-11_all_about_git.html">
+<h3 class="no-anchor listing-title">
+All about git
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('bash'); return false;">
+bash
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('git'); return false;">
+git
+</div>
+</div>
+<a href="./posts/2020-02-11_all_about_git.html">
+<div class="listing-description">
+Recently I have actively participated two team projects (PAWS and 2020datahack) which involves multiple team members and a lot of group decisions. For the first time, I realized how important to use github as the platform for code sharing and communication. Here I am going to share several commands that I frequently used at this process and hope it will help people quickly pick up this useful collaboration tool.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/2020-02-11_all_about_git.html">
+<div class="listing-date">
+Feb 11, 2020
+</div>
+<div class="listing-reading-time">
+8 min
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="8" data-categories="R,network,visualization" data-listing-date-sort="1567569600000" data-listing-file-modified-sort="1666662404457" data-listing-reading-time-sort="7.405">
 <div class="thumbnail">
 <p><a href="./posts/2019-09-04_network_analysis_part3.html"> <img src="https://raw.githubusercontent.com/thomasp85/ggraph/febab71076d7cf277cdb79b823f262b626651703/man/figures/logo.png" class="thumnail-image"> </a></p>
 </div>
@@ -199,9 +517,9 @@ Sep 4, 2019
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="R,network" data-listing-date-sort="1566619200000" data-listing-file-modified-sort="1665546148421" data-listing-reading-time-sort="4.365">
+<div class="quarto-post image-right" data-index="9" data-categories="R,network" data-listing-date-sort="1566619200000" data-listing-file-modified-sort="1666662830307" data-listing-reading-time-sort="4.365">
 <div class="thumbnail">
-<p><a href="./posts/2019-08-24_network_analysis_part2.html"> <img src="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2019-08-24_network_analysis_part2.html"> <img src="./_site/posts/2019-08-24_network_analysis_part2_files/figure-html/community-1.png" class="thumnail-image"> </a></p>
 </div>
 <div class="body">
 <a href="./posts/2019-08-24_network_analysis_part2.html">
@@ -237,9 +555,9 @@ Aug 24, 2019
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-categories="R,network" data-listing-date-sort="1562817600000" data-listing-file-modified-sort="1664939498157" data-listing-reading-time-sort="9.32">
+<div class="quarto-post image-right" data-index="10" data-categories="R,network" data-listing-date-sort="1562817600000" data-listing-file-modified-sort="1664939498157" data-listing-reading-time-sort="9.32">
 <div class="thumbnail">
-<p><a href="./posts/2019-07-11_network_analysis_part1.html"> <img src="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" class="thumnail-image"> </a></p>
+<p><a href="./posts/2019-07-11_network_analysis_part1.html"> <img data-src="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" class="thumnail-image"> </a></p>
 </div>
 <div class="body">
 <a href="./posts/2019-07-11_network_analysis_part1.html">
@@ -279,6 +597,9 @@ Jul 11, 2019
 <div class="listing-no-matching d-none">
 No matching items
 </div>
+<nav id="listing-pagination" class="listing-pagination" aria-label="Page Navigation">
+  <ul class="pagination"></ul>
+</nav>
 </div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

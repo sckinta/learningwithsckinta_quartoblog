@@ -148,9 +148,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../about.html">About</a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link" href="../posts.html">Posts</a>
   </li>  
   <li class="nav-item">
@@ -255,17 +252,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ol></li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggraph)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 </section>
 <section id="igraph-object" class="level1">
 <h1>IGRAPH object</h1>
 <p><strong>IGRAPH object</strong> is a R object defined in <code>igraph</code> package.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_graph</span>(letters[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">directed =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH be34cdf DN-- 10 5 -- 
 + attr: name (v/c)
@@ -293,6 +296,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="edge-list-matrix">edge list matrix</h3>
 <p>The example below generates a directed graph from a list of vertex pair (edge)</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>edge_list <span class="ot">&lt;-</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(<span class="at">from =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>), <span class="at">to =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">2</span>, <span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">as.matrix</span>()</span>
@@ -300,12 +305,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graph_from_edgelist</span>(edge_list,<span class="at">directed =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 59ad3e6 D--- 4 5 -- 
 + edges from 59ad3e6:
 [1] 1-&gt;2 2-&gt;3 2-&gt;4 3-&gt;2 4-&gt;1</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -315,15 +324,21 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="one-mode-graph-from-a-vector-of-edge">one-mode graph from a vector of edge</h3>
 <p>If the edge is given in a single vector, the default <code>make_graph</code> will use the order of vector to make one-mode graph. It means that the 1st edge points from the 1st element to the 2nd element, the 2nd edge from the 3rd element to the 4th element, etc. If the length of vector is odd number, it will end with last element connecting back to the 1st element, and throw a warning.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">make_graph</span>(letters[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>], <span class="at">directed =</span> T)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 12185c3 DN-- 10 5 -- 
 + attr: name (v/c)
 + edges from 12185c3 (vertex names):
 [1] a-&gt;b c-&gt;d e-&gt;f g-&gt;h i-&gt;j</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -333,6 +348,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3 class="anchored" data-anchor-id="using-adjacent-matrix">using adjacent matrix</h3>
 <p>The example below generates a undirected graph from a binary matrix, in which nodes are matrix colname and rowname.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>adj_matrix <span class="ot">&lt;-</span></span>
@@ -343,6 +360,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(adj_matrix) <span class="ot">&lt;-</span> letters[<span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>]</span>
 <span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>adj_matrix</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>  a b c d e f g h i j
 a 0 1 1 1 0 0 0 0 0 0
@@ -356,17 +374,23 @@ h 1 0 0 0 0 0 0 0 1 0
 i 0 0 0 0 0 1 0 0 0 0
 j 0 1 0 0 0 0 0 0 0 0</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">graph_from_adjacency_matrix</span>(adj_matrix, <span class="at">mode =</span> <span class="st">"undirected"</span>, <span class="at">weighted =</span> T)</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 81fe3c0 UNW- 10 12 -- 
 + attr: name (v/c), weight (e/n)
 + edges from 81fe3c0 (vertex names):
  [1] a--b a--c a--d a--e a--h b--d b--f b--j c--d f--i g--i h--i</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -377,6 +401,8 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 <h3 class="anchored" data-anchor-id="using-named-data.frame">Using named data.frame</h3>
 <p>This is my favorite. The graph generated from <code>data.frame</code> can add all attributes at once. The below example is from official website. The attributes for nodes (<code>actors</code>) are <code>age</code> and <code>gender</code>, and edge (<code>relationship</code>) attributes include <code>same.dept</code>, <code>friendship</code> and <code>advice</code>.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>actors <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">name=</span><span class="fu">c</span>(<span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Cecil"</span>, <span class="st">"David"</span>,<span class="st">"Esmeralda"</span>),</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">age=</span><span class="fu">c</span>(<span class="dv">48</span>,<span class="dv">33</span>,<span class="dv">45</span>,<span class="dv">34</span>,<span class="dv">21</span>),</span>
@@ -393,6 +419,7 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(relations, <span class="at">directed=</span><span class="cn">TRUE</span>, <span class="at">vertices=</span>actors)</span>
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>actor_relation_g</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 05d16d7 DN-- 5 6 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -401,7 +428,10 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 [1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
 [5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(actor_relation_g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/graphDataFrame-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -417,27 +447,36 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 </ul></li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sample 10 vertex, every possible edge is created with the same constant probability 0.3</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">12</span>)</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>gr <span class="ot">&lt;-</span> <span class="fu">sample_gnp</span>(<span class="dv">10</span>, <span class="fl">0.3</span>)</span>
 <span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>gr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH eaef67a U--- 10 11 -- Erdos-Renyi (gnp) graph
 + attr: name (g/c), type (g/c), loops (g/l), p (g/n)
 + edges from eaef67a:
  [1] 2-- 5 3-- 5 5-- 6 4-- 7 3-- 8 6-- 8 1-- 9 3-- 9 8-- 9 3--10 8--10</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(gr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <pre><code>-  The required parameters for *gmp* include: 1) The number of vertices in the graph `n` and 2) The number of edges in the graph `m`.</code></pre>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># sample 10 vertex, create a 15-edge graph</span></span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>gr <span class="ot">&lt;-</span> <span class="fu">sample_gnm</span>(<span class="dv">10</span>, <span class="dv">15</span>)</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>gr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH a2ec496 U--- 10 15 -- Erdos-Renyi (gnm) graph
 + attr: name (g/c), type (g/c), loops (g/l), m (g/n)
@@ -445,7 +484,10 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
  [1] 1-- 2 1-- 4 2-- 4 3-- 4 5-- 6 2-- 7 3-- 7 5-- 7 2-- 8 3-- 8 6-- 8 1-- 9
 [13] 4-- 9 5--10 9--10</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(gr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -454,15 +496,21 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 <li>Random scale free network, which means a network whose degree of nodes distribution follows a power law. <code>sample_pa</code> generates scale-free graphs according to the Barabasi-Albert model. We start with a single vertex and no edges in the first time step. Then we add one vertex in each time step and the new vertex initiates some edges to old vertices. The probability that an old vertex is chosen is given by <span class="math inline">\(p(i) ~ k_i * power + zero.appeal\)</span></li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>gr <span class="ot">&lt;-</span> <span class="fu">sample_pa</span>(<span class="dv">100</span>, <span class="at">power =</span> <span class="dv">2</span>)</span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">vertex.label=</span> <span class="cn">NA</span>, <span class="at">edge.arrow.size=</span><span class="fl">0.02</span>,<span class="at">vertex.size =</span> <span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">density</span>(<span class="fu">degree_distribution</span>(gr)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/unnamed-chunk-8-2.png" class="img-fluid" width="672"></p>
 </div>
@@ -474,22 +522,34 @@ j 0 1 0 0 0 0 0 0 0 0</code></pre>
 <h2 class="anchored" data-anchor-id="extract-vertexedge-and-their-attributes">Extract vertex/edge and their attributes</h2>
 <p>To get vertex list and their attributes from graph object, we use <code>V(graph)$"&lt;attribute_name&gt;"</code> to convert graph object to vector. Using IGRAPH <code>actor_relation_g</code> created in previous chunk as example, we will get actor node (<code>name</code>), <code>age</code> (attribute 1) and <code>gender</code> (attribute 2)</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(actor_relation_g)<span class="sc">$</span>name</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "Alice"     "Bob"       "Cecil"     "David"     "Esmeralda"</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(actor_relation_g)<span class="sc">$</span>age</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 48 33 45 34 21</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(actor_relation_g)<span class="sc">$</span>gender</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] "F" "M" "F" "M" "F"</code></pre>
 </div>
 </div>
 <p>We can also get all the vertex attributes to a data.frame using <code>igraph::as_data_frame()</code></p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>igraph<span class="sc">::</span><span class="fu">as_data_frame</span>(actor_relation_g, <span class="at">what =</span> <span class="st">"vertices"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>               name age gender
 Alice         Alice  48      F
@@ -501,17 +561,26 @@ Esmeralda Esmeralda  21      F</code></pre>
 </div>
 <p>Similarly, to get edge list and their attributes from graph object, we use <code>E(graph)$"&lt;attribute_name&gt;"</code> to convert graph object to vector. OR using <code>igraph::as_data_frame()</code> to convert all edges to a data.frame</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># edge attributes</span></span>
 <span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">E</span>(actor_relation_g)<span class="sc">$</span>same.dept</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] FALSE FALSE  TRUE FALSE FALSE  TRUE</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">E</span>(actor_relation_g)<span class="sc">$</span>friendship</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 4 5 5 2 1 1</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># edge data.frame</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>igraph<span class="sc">::</span><span class="fu">as_data_frame</span>(actor_relation_g, <span class="at">what =</span> <span class="st">"edges"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>       from    to same.dept friendship advice
 1       Bob Alice     FALSE          4      4
@@ -527,9 +596,12 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h2 class="anchored" data-anchor-id="add-vertex-and-edges">Add vertex and edges</h2>
 <p>Vertices and edges can be added to existing graph by <code>add_&lt;vertices|edges&gt;()</code> or <code>+ &lt;vertices|edges&gt;()</code>. Please be aware that vertices of added new edges must be from known vertices already in the graph.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add vertices </span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> </span>
 <span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">add_vertices</span>(<span class="dv">2</span>, <span class="at">name=</span><span class="fu">c</span>(<span class="st">"Lisa"</span>,<span class="st">"Zack"</span>)) <span class="co"># the first argument is number of vertex</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 80dfeea DN-- 7 6 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -538,7 +610,10 @@ Esmeralda Esmeralda  21      F</code></pre>
 [1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
 [5] David    -&gt;Bob   Esmeralda-&gt;Alice</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">+</span> <span class="fu">vertices</span>(<span class="fu">c</span>(<span class="st">"Lisa"</span>,<span class="st">"Zack"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH de6630f DN-- 7 6 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -550,9 +625,12 @@ Esmeralda Esmeralda  21      F</code></pre>
 </div>
 <p>To add new edge, the new edge must be between known vertices already in the graph.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add connected edges (even number of vertices). </span></span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> </span>
 <span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">add_edges</span>(<span class="fu">c</span>(<span class="st">"Alice"</span>,<span class="st">"Bob"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH d7c4121 DN-- 5 7 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -561,7 +639,10 @@ Esmeralda Esmeralda  21      F</code></pre>
 [1] Bob      -&gt;Alice Cecil    -&gt;Bob   Cecil    -&gt;Alice David    -&gt;Alice
 [5] David    -&gt;Bob   Esmeralda-&gt;Alice Alice    -&gt;Bob  </code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">+</span> <span class="fu">edge</span>(<span class="fu">c</span>(<span class="st">"Alice"</span>,<span class="st">"Bob"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH ad4c43b DN-- 5 7 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -573,8 +654,11 @@ Esmeralda Esmeralda  21      F</code></pre>
 </div>
 <p>The edges can be also be added by <code>+ path()</code>. The path is a <code>igraph.path</code> object that each element is connected to the next, but it is not a <code>IGRAPH</code> object.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add paths. The vertices must be from known vertices already in the graph </span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">+</span> <span class="fu">path</span>(<span class="st">"Alice"</span>,<span class="st">"Bob"</span>,<span class="st">"Cecil"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 48d4748 DN-- 5 8 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -586,7 +670,10 @@ Esmeralda Esmeralda  21      F</code></pre>
 </div>
 <p>If a new vertex needs to be added to current graph, using add graph method instead.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">+</span> <span class="fu">make_graph</span>(<span class="fu">c</span>(<span class="st">"Alice"</span>,<span class="st">"Bob"</span>,<span class="st">"Bob"</span>,<span class="st">"Melisa"</span>)) <span class="co"># this create same path as above</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH def4db0 DN-- 6 8 -- 
 + attr: age (v/n), gender (v/c), name (v/c), same.dept (e/l),
@@ -601,6 +688,8 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h2 class="anchored" data-anchor-id="delete-vertex-and-edges">Delete vertex and edges</h2>
 <p>Delete can be done by <code>delete_&lt;vertices|edges&gt;()</code> using either index or name of vertices|edges.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="do">### remove the vertices whose age is younger than 30</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>vertex_df <span class="ot">=</span> actor_relation_g <span class="sc">%&gt;%</span> </span>
 <span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>    igraph<span class="sc">::</span><span class="fu">as_data_frame</span>(<span class="at">what=</span><span class="st">"vertices"</span>) <span class="sc">%&gt;%</span> </span>
@@ -610,6 +699,7 @@ Esmeralda Esmeralda  21      F</code></pre>
 <span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="co"># remove vertices by index number </span></span>
 <span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> <span class="fu">delete_vertices</span>(vertex_df<span class="sc">$</span>index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 82b2916 DN-- 4 5 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -617,8 +707,11 @@ Esmeralda Esmeralda  21      F</code></pre>
 + edges from 82b2916 (vertex names):
 [1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice David-&gt;Bob  </code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="co"># remove vertice by name </span></span>
 <span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> <span class="fu">delete_vertices</span>(vertex_df<span class="sc">$</span>name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 464f2cc DN-- 4 5 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -628,6 +721,8 @@ Esmeralda Esmeralda  21      F</code></pre>
 </div>
 </div>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="do">### remove the edges with friendship &lt;= 1 </span></span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>edge_df <span class="ot">=</span> actor_relation_g <span class="sc">%&gt;%</span> </span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    igraph<span class="sc">::</span><span class="fu">as_data_frame</span>(<span class="at">what=</span><span class="st">"edges"</span>) <span class="sc">%&gt;%</span> </span>
@@ -638,6 +733,7 @@ Esmeralda Esmeralda  21      F</code></pre>
 <span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a><span class="co"># remove vertice by index</span></span>
 <span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> <span class="fu">delete_edges</span>(edge_df<span class="sc">$</span>index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 8643b08 DN-- 5 4 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -645,8 +741,11 @@ Esmeralda Esmeralda  21      F</code></pre>
 + edges from 8643b08 (vertex names):
 [1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice David-&gt;Alice</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co"># remove vertice by name </span></span>
 <span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span> <span class="fu">delete_edges</span>(edge_df<span class="sc">$</span>name)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 05c4850 DN-- 5 4 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -660,6 +759,8 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h2 class="anchored" data-anchor-id="setdelete-the-attributes-of-vertex-and-edges">Set/Delete the attributes of vertex and edges</h2>
 <p>The attributes of vertices and edges can be added or deleted to existing graph by <code>set_vertex_attr()</code>/<code>set_edge_attr()</code> or <code>delete_vertex_attr()</code>/<code>delete_edge_attr()</code>.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb61"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add a new attr "relationship" for people in the same dept</span></span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>edge_df <span class="ot">&lt;-</span></span>
 <span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>    actor_relation_g <span class="sc">%&gt;%</span> igraph<span class="sc">::</span><span class="fu">as_data_frame</span>(<span class="at">what =</span> <span class="st">"edges"</span>) <span class="sc">%&gt;%</span></span>
@@ -668,6 +769,7 @@ Esmeralda Esmeralda  21      F</code></pre>
 <span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>actor_relation_g <span class="sc">%&gt;%</span></span>
 <span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">set_edge_attr</span>(<span class="st">"relationship"</span>, <span class="fu">which</span>(<span class="sc">!</span><span class="fu">is.na</span>(edge_df<span class="sc">$</span>relationship)), edge_df<span class="sc">$</span>relationship[<span class="sc">!</span><span class="fu">is.na</span>(edge_df<span class="sc">$</span>relationship)]</span>
 <span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>                  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 05d16d7 DN-- 5 6 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -682,6 +784,8 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h2 class="anchored" data-anchor-id="merge-graph">Merge graph</h2>
 <p>Graphs union/intersection is to merge two or more graphs into one graph using the shared the vertices.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb63"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create new graph</span></span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>g2 <span class="ot">&lt;-</span> <span class="fu">graph_from_literal</span>(<span class="st">"David"</span><span class="sc">-+</span><span class="st">"Charlie"</span><span class="sc">+-+</span><span class="st">"Lisa"</span>,</span>
 <span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"Lisa"</span><span class="sc">+-+</span><span class="st">"David"</span><span class="sc">+-</span><span class="st">"Jim"</span>,</span>
@@ -703,6 +807,7 @@ Esmeralda Esmeralda  21      F</code></pre>
 <span id="cb63-19"><a href="#cb63-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g2, <span class="at">edge.arrow.size=</span>.<span class="dv">4</span>)</span>
 <span id="cb63-20"><a href="#cb63-20" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g3, <span class="at">edge.arrow.size=</span>.<span class="dv">4</span>)</span>
 <span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g4, <span class="at">edge.arrow.size=</span>.<span class="dv">4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-07-11_network_analysis_part1_files/figure-html/merge-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -712,8 +817,11 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h2 class="anchored" data-anchor-id="induce-subgraph">Induce subgraph</h2>
 <p>The subgraph can be induced by either vertex or edge names/index. The edge names are in the form <code>from|to</code>.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="co"># induce a subgraph using a list of vertices</span></span>
 <span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>igraph<span class="sc">::</span><span class="fu">induced_subgraph</span>(actor_relation_g, <span class="at">v=</span><span class="fu">c</span>(<span class="st">"Alice"</span>,<span class="st">"Bob"</span>,<span class="st">"Cecil"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 4f5b3fb DN-- 3 3 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -721,8 +829,11 @@ Esmeralda Esmeralda  21      F</code></pre>
 + edges from 4f5b3fb (vertex names):
 [1] Bob  -&gt;Alice Cecil-&gt;Bob   Cecil-&gt;Alice</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># induce a subgraph using edges</span></span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a>igraph<span class="sc">::</span><span class="fu">subgraph.edges</span>(actor_relation_g, <span class="fu">c</span>(<span class="st">"Bob|Alice"</span>,<span class="st">"David|Bob"</span>,<span class="st">"Cecil|Alice"</span>), <span class="at">delete.vertices =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH a710864 DN-- 4 3 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -730,9 +841,12 @@ Esmeralda Esmeralda  21      F</code></pre>
 + edges from a710864 (vertex names):
 [1] Bob  -&gt;Alice Cecil-&gt;Alice David-&gt;Bob  </code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb68"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># induce a subgraph using edges attribute (friendship score stronger than 3)</span></span>
 <span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>e1 <span class="ot">=</span> <span class="fu">E</span>(actor_relation_g)[<span class="fu">E</span>(actor_relation_g)<span class="sc">$</span>friendship <span class="sc">&gt;</span> <span class="dv">3</span>]</span>
 <span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>igraph<span class="sc">::</span><span class="fu">subgraph.edges</span>(actor_relation_g, e1, <span class="at">delete.vertices =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>IGRAPH 7e403b5 DN-- 3 3 -- 
 + attr: name (v/c), age (v/n), gender (v/c), same.dept (e/l),
@@ -747,18 +861,27 @@ Esmeralda Esmeralda  21      F</code></pre>
 <h1>Relationship between known nodes</h1>
 <p>With a known graph, we sometimes want to know relationship between two known nodes. eg. are those two nodes adjacent? are those two nodes linked by a path? what are the path to connect them?</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check two nodes adjacent. return boolean</span></span>
 <span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a><span class="fu">are_adjacent</span>(g3,<span class="st">"Jim"</span>, <span class="st">"Zack"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] FALSE</code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="co"># paths to connect </span></span>
 <span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a><span class="fu">all_shortest_paths</span>(g3, <span class="st">"Jim"</span>,<span class="st">"Zack"</span>)<span class="sc">$</span>res[[<span class="dv">1</span>]] <span class="co"># return a igraph.vs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>+ 4/9 vertices, named, from 3eded49:
 [1] Jim     David   Charlie Zack   </code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all_simple_paths</span>(g3, <span class="st">"Jim"</span>, <span class="st">"Zack"</span>) <span class="co"># return a list of igraph.vs</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]
 + 4/9 vertices, named, from 3eded49:
@@ -768,7 +891,10 @@ Esmeralda Esmeralda  21      F</code></pre>
 + 5/9 vertices, named, from 3eded49:
 [1] Jim     David   Lisa    Charlie Zack   </code></pre>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb76"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a><span class="fu">all_simple_paths</span>(g3, <span class="st">"Jim"</span>, <span class="st">"Zack"</span>, <span class="at">mode =</span> <span class="st">"all"</span>)  <span class="co"># regardless of direction</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-stdout">
 <pre><code>[[1]]
 + 6/9 vertices, named, from 3eded49:

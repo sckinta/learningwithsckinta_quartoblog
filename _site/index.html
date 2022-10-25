@@ -30,12 +30,9 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark.css" rel="prefetch" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
@@ -62,42 +59,12 @@ ul.task-list li input[type="checkbox"] {
     "search-submit-button-title": "Submit"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
-
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-reading-time','listing-description','listing-categories','listing-image',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="nav-fixed">
+<body class="nav-fixed fullcontent">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -113,9 +80,6 @@ ul.task-list li input[type="checkbox"] {
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
-  <li class="nav-item">
-    <a class="nav-link" href="./about.html">About</a>
-  </li>  
   <li class="nav-item">
     <a class="nav-link" href="./posts.html">Posts</a>
   </li>  
@@ -135,145 +99,43 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="R">R <span class="quarto-category-count">(3)</span></div><div class="category" data-category="network">network <span class="quarto-category-count">(3)</span></div><div class="category" data-category="visualization">visualization <span class="quarto-category-count">(1)</span></div></div></div>
+    
 <!-- main -->
-<main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
+<div class="quarto-about-jolla">
+  <img src="https://media-exp1.licdn.com/dms/image/C4E03AQH2-cbjQTrAKw/profile-displayphoto-shrink_800_800/0/1516780179563?e=1667433600&amp;v=beta&amp;t=ycj2c4SfbINkl4kwmciBOz0itQXDqzdxYhCp82HZ0-I" class="about-image
+  round " style="height: 15em; width: 15em;">
+ <main class="content" id="quarto-document-content">
+<section id="chun-su" class="level1">
+<h1>Chun Su</h1>
+<p>Hi! Thank you for stopping by! I am a computational biologist at the Amgen Inc., and volunteer as a co-organizer at <a href="https://www.rladiesphilly.org/">Rladies Philly</a>. Originally from China, I came to the U.S. in 2011 and completed my PhD in Biology at the University of Virginia in 2017. Starting as a Perl programmer, I picked up R and Python by taking online courses and attending local meetup workshops. I enjoy learning new programming skills and believe learning is a life-time mission. I would like to dedicate this personal website to sharing the study notes and projects in my learning journey. Hopefully it will help or motivate other self-learners.</p>
 
 
-
-
-
-
-
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="R,network,visualization" data-listing-date-sort="1567569600000" data-listing-file-modified-sort="1665549099312" data-listing-reading-time-sort="7.395">
-<div class="thumbnail">
-<p><a href="./posts/2019-09-04_network_analysis_part3.html"> <img src="https://raw.githubusercontent.com/thomasp85/ggraph/febab71076d7cf277cdb79b823f262b626651703/man/figures/logo.png" class="thumnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/2019-09-04_network_analysis_part3.html">
-<h3 class="no-anchor listing-title">
-Network visualization - Part 3
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
-R
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('network'); return false;">
-network
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('visualization'); return false;">
-visualization
+</section>
+</main> 
+  <hr class="about-sep">
+   <div class="about-links">
+  <a href="https://www.linkedin.com/in/chun-su-a031087b/" class="about-link">
+    <i class="bi bi-linkedin"></i>
+     <span class="about-link-text">LinkedIn</span>
+  </a>
+  <a href="https://github.com/sckinta" class="about-link">
+    <i class="bi bi-github"></i>
+     <span class="about-link-text">Github</span>
+  </a>
+  <a href="https://twitter.com/sckinta" class="about-link">
+    <i class="bi bi-twitter"></i>
+     <span class="about-link-text">Twitter</span>
+  </a>
+  <a href="https://scholar.google.com/citations?user=b4ozof8AAAAJ&amp;hl=en" class="about-link">
+    <i class="bi bi-google"></i>
+     <span class="about-link-text">Google Scholar</span>
+  </a>
 </div>
 </div>
-<a href="./posts/2019-09-04_network_analysis_part3.html">
-<div class="listing-description">
-In the previous two posts, we discussed about IGRAPH object and how to manipulate, measure and cluster it. In this final post of network analysis series, I will focus on the network work visualization.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/2019-09-04_network_analysis_part3.html">
-<div class="listing-date">
-Sep 4, 2019
-</div>
-<div class="listing-reading-time">
-7 min
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="R,network" data-listing-date-sort="1566619200000" data-listing-file-modified-sort="1665546148421" data-listing-reading-time-sort="4.365">
-<div class="thumbnail">
-<p><a href="./posts/2019-08-24_network_analysis_part2.html"> <img src="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" class="thumnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/2019-08-24_network_analysis_part2.html">
-<h3 class="no-anchor listing-title">
-Network Analysis in R - Part 2
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
-R
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('network'); return false;">
-network
-</div>
-</div>
-<a href="./posts/2019-08-24_network_analysis_part2.html">
-<div class="listing-description">
-In last post, I covered the basic components of IGRAPH objects and how to manipulate IGRAPH. You may notice that most of those manipulation do not really require a IGRAPH object to play with. However, in this post, you will realize the advantage of using IGRAPH over data.frame in network analysis.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/2019-08-24_network_analysis_part2.html">
-<div class="listing-date">
-Aug 24, 2019
-</div>
-<div class="listing-reading-time">
-4 min
-</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="R,network" data-listing-date-sort="1562817600000" data-listing-file-modified-sort="1664939498157" data-listing-reading-time-sort="9.32">
-<div class="thumbnail">
-<p><a href="./posts/2019-07-11_network_analysis_part1.html"> <img src="https://www.robcross.org/wp-content/uploads/2020/06/organizational-network-analysis.png" class="thumnail-image"> </a></p>
-</div>
-<div class="body">
-<a href="./posts/2019-07-11_network_analysis_part1.html">
-<h3 class="no-anchor listing-title">
-Network Analysis in R - Part 1
-</h3>
-<div class="listing-subtitle">
-
-</div>
-</a>
-<div class="listing-categories">
-<div class="listing-category" onclick="window.quartoListingCategory('R'); return false;">
-R
-</div>
-<div class="listing-category" onclick="window.quartoListingCategory('network'); return false;">
-network
-</div>
-</div>
-<a href="./posts/2019-07-11_network_analysis_part1.html">
-<div class="listing-description">
-Network analysis, also called graph analysis, is to study the complexity of the inter-relationships between actors of all sorts and provides an architectural view of individual actor connections.
-</div>
-</a>
-</div>
-<div class="metadata">
-<a href="./posts/2019-07-11_network_analysis_part1.html">
-<div class="listing-date">
-Jul 11, 2019
-</div>
-<div class="listing-reading-time">
-9 min
-</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">
-No matching items
-</div>
-</div></main> <!-- /main -->
+ <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
@@ -407,13 +269,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   if (hasAlternateSentinel()) {
     toggleColorMode(true);
   } 
-  const icon = "";
-  const anchorJS = new window.AnchorJS();
-  anchorJS.options = {
-    placement: 'right',
-    icon: icon
-  };
-  anchorJS.add('.anchored');
   const clipboard = new window.ClipboardJS('.code-copy-button', {
     target: function(trigger) {
       return trigger.previousElementSibling;

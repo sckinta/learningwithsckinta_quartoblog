@@ -1,0 +1,236 @@
+---
+title: 'All about git'
+author: "Sckinta"
+date: "2020-02-11"
+categories: ["bash", "git"]
+output: 
+  blogdown::html_page:
+          toc: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Recently I have actively participated two team projects (PAWS and 2020datahack) which involves multiple team members and a lot of group decisions. For the first time, I realized how important to use github as the platform for code sharing and communication. Here I am going to share several commands that I frequently used at this process and hope it will help people quickly pick up this useful collaboration tool.
+
+### 1. initiate a new repo at github
+
+Repository, aka repo, is a collection of codes, data and documentation designated for project(s). As far as you have github account, you can create public repo(s) through github webpage easily. Follow the step 1-5 on [this website](https://help.github.com/en/github/getting-started-with-github/create-a-repo), then you will create a repo with a few clicks. New repo usually comes with a README.md file. Using markdown format, you can describe the project in this README.md file which will be loaded to your repo main page when you open it. Here is the [repo](https://github.com/rladiesPHL/PAWS_return_noshow) I created for Rladies-Philly PAWS projects.
+
+### 2. Local vs. remote
+
+One concept need to be clarified here is local vs. remote. *Github* is the most popular cloud-based service hosting repos. Those repo is managed by git installed at remote (aka, github here). So what is *git*? Git is a version control system that lets you manage and keep track of your source code history. It can also be [installed](https://git-scm.com/downloads) at local and work as local version control system. In that case, your snapshot of each version will be saved at local instead of cloud.
+
+```{r local_init, eval=F}
+# to initiate repo at local
+# suppose you have a project working now called repoX
+# all scripts/data/documentation are saved in a folder in your computer called repoX. 
+# Now you want to start git version control for this project
+cd repoX/
+git init
+git add -A
+git commit -m "initiate version control"
+```
+
+The above code can be run on any shell-like terminal. And congrats, you have sucessefully create version control at local folder repoX/. `git commit` basically create a snapshot of this folder. If you want to change it back to this moment in the future, you can do it with commit number (it is hash code). It is important to write a meaningful message (like here "initiate version control") to remind yourself what the snapshot is like. We will discuss how to recover using commit number in a little bit.
+
+### 3. clone, pull and push
+
+To communicate between your local and remote github, you can access through git by downloading (`pull`) remote to local and uploading (`push`) local repo to the cloud (github).
+
+If you initiate repo from github first (step 1 above), you can first clone that repo to local. This repo will remember the remote address and allow you later pull from and push to the remote
+
+```{r clone_cloud_repo, eval=F}
+# here I use rladiesPHL/PAWS_return_noshow.git as my example
+
+# clone the repo to local
+git clone https://github.com/rladiesPHL/PAWS_return_noshow.git
+```
+
+Anyone can clone a public repo to their local computer. However, to be able to `pull` and `push`, you need to be included as collaborators for that repo specially, or you are the repo owner yourself. To add someone as collaborator, follow the [steps](https://help.github.com/en/github/setting-up-and-managing-your-github-user-account/inviting-collaborators-to-a-personal-repository) by clicking on the webpage. Once you are the owner/collaborator, you can do following command to download and upload.
+
+```{r pull_push, eval=F}
+# initiate clone will create a folder at local called "PAWS_return_noshow", go to that folder
+cd PAWS_return_noshow/
+# pull (the update) from PAWS_return_noshow (since the clone remember the remote address)
+git pull
+
+# you can do your analysis, do your update at local now
+
+# when it is time to upload your analysis to cloud, you first want to take a snapshot of what you have done so far
+git add -A
+git commit -m "my update"
+
+# now you can push your analysis to the github
+git push origin master
+```
+
+### 4. fork
+
+Above example is to push your analysis directly to the origin's master branch. So what is `origin`? (what is the master branch will be explained in the next). Put it simple, you can consider origin as the place where is first downloaded. For example, I download PAWS_return_noshow repo from rladiesPHL account and the origin here will be rladiesPHL repo address (https://github.com/rladiesPHL/PAWS_return_noshow.git).
+
+```{r origin, eval=F}
+# to quick check your repo remote origin
+git remote -v
+```
+
+```{r, eval=F}
+# origin	https://github.com/rladiesPHL/PAWS_return_noshow.git (fetch)
+# origin	https://github.com/rladiesPHL/PAWS_return_noshow.git (push)
+```
+
+Why is `origin` important? The origin determines which repo push and pull will go to/from. Some repo won't allow you to push and pull because you are not the owner or collaborator. If you do not want request pull and push permission from the owner, you can `fork` the repo to your own github account. Here `fork` is like to clone a remote repo belonging to other poeple's account at that snapshot to your own account. You can develope/make commits on repo without any push/pull permission obstables.
+
+The easiest way to fork a repo is from webpage. You can follow the instruction on this [help page](https://help.github.com/en/enterprise/2.13/user/articles/fork-a-repo).
+
+Be aware, if you `git clone` the forked repo from your github account, the "origin" is your own account repo. This repo is functionally independent from the upstream repo, although at top of your own repo page it will show "This branch is X commits ahead of/behind XXX:master." when the upstream repo makes commits after forking. What if you want your own "forked" repo remember where it comes so that you can merge the future changes from the upstream repo to your "forked" repo?
+
+```{r fork, eval=F}
+# here I show an example of a forked repo at my own account (sckinta/datahack2020) linking back to the upstream account (CodeForPhilly/datahack2020)
+
+# add a repo description called "upstream" and associated this name with upstream repo. Here "upstream" can be any name (eg. up, ori, ...)
+git remote add upstream https://github.com/CodeForPhilly/datahack2020.git
+
+# check remote info again you will find now repo have two remote associated with it. one is called "origin" and another is called "upstream"
+git remote -v
+```
+
+```{r fork2, eval=F}
+# origin	https://github.com/sckinta/datahack2020.git (fetch)
+# origin	https://github.com/sckinta/datahack2020.git (push)
+# upstream	https://github.com/CodeForPhilly/datahack2020.git (fetch)
+# upstream	https://github.com/CodeForPhilly/datahack2020.git (push)
+```
+
+To update your forked repo at github, you need three steps: 1) `fetch` the upstream repo to your local repo; 2) `merge` updated fetch content into the main branch at local; 3) `push` updated local to remote forked repo
+
+```{r fork3, eval=F}
+# fecth upstream to local
+git fetch upstream
+
+# Merge the updated fetch content into the main branch at local
+git merge upstream/master
+
+# Update, push to remote(fork) master branch
+git push origin master
+```
+
+I highly suggest `pull` your forked repo to local first before `fetch` upstream. It will guarantee when you merge the upstream it will not cause the conflicts.
+
+### 5. branch
+
+After fork origin, another useful tool for collobarative project is using branch. "Branch", as it is named, means a branch of analysis derived from the mainstream (which is by default named "master"). You can create branches on your own repo or the repo you have been invited as collaborator. This is the biggest difference between branch and a repo fork. To add a branch at local, using code `git checkout`.
+
+```{r branch1, eval=F}
+# Create and switch to a new branch (say, branch "chun")
+git checkout -b chun
+
+# go back to the master
+git checkout master
+```
+
+Now you can do your analysis in the repo fold. When you are ready to commit your new analysis, how will your repo know this analysis added to branch "chun"? Simple, using `git checkout` switch to chun branch and commit there. You can also push your new branch to remote, where the branch will show up under the <github_name>/<repo_name>/tree
+
+```{r branch2, eval=F}
+# for example I push my new analysis to branch "chun" and finally push it to sckinta/datahack2020
+
+# switch to branch chun
+git checkout chun
+
+# make your new commit
+git add -A
+git commit -m "new analysis"
+
+# push it to github branch
+git push origin chun
+```
+
+If you want to continue on other collaborator's branch (say "abc"), you can pull that branch to local.
+
+```{r branch3, eval=F}
+# download branch abc to your analysis
+git pull origin abc
+
+# check how many branches current local repo contains
+git branch
+```
+
+```{r branch4, eval=F}
+# *chun
+#   master
+#   abc
+```
+
+After everybody did their analysis on their own branch, your group finally determine we are going to merge branch "abc" to master and delete the branch "abc".
+
+```{r branch5, eval=F}
+# go to the master first
+git checkout master
+
+# merge branch "abc" in
+git merge abc
+
+# delete old branch
+git checkout -d abc
+```
+
+Occasionally, this process doesn't go smoothly. Conflicts may occur when you try to merge multiple branches in. Then you may need advance tools like `mergetool` and `opendiff`. Here I won't explain them. Please refer to[git tutorial page](https://git-scm.com/book/en/v2/Git-Tools-Advanced-Merging#_advanced_merging) for further reading. All the simple branch and merge has also been best explained on [git tutorial](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging).
+
+### 6. Recover a certain commit
+
+One major reason we want to use version control is that we can revert to a old snapshot/commit if we want. To check the commits done to the current repo, you can try `git log`. The log is reported in reverse chronical order.
+
+```{r revert1, eval=F}
+git log --oneline
+```
+
+```{r revert2, eval=F}
+# ea03bb2 (HEAD -> chun, origin/chun) clean and EDA on incident county
+# 3c659ec (upstream/master, origin/master, origin/HEAD, master) Merge pull request #7 from CodeForPhilly/branch_dubois
+# c76c701 (upstream/branch_dubois) updated outrigger & added presentation
+# 29992c6 Merge pull request #6 from rjake/jake
+# 52c88ea Create psp_overdose_events.csv
+# 36495db Add codebook
+# 714f848 gitignore data files
+# 51e5974 added presentation slides
+```
+
+To revert to a commit
+
+```{r revert3, eval=F}
+# since we are currently at chun branch, we better go back to master where "3c659ec" is at
+git checkout master
+
+# revert to a commit
+git revert 3c659ec
+
+# the above command can also be
+git reset --hard 3c659ec
+```
+
+Remember all of above is only updated at local. If you want to make it show up at github, do a `add`, `commit` and `push` series.
+
+### 7. link to your remote account at local
+
+After introduce all above basic commands for git, the last thing I want to share is to set up the local git remote account. I probably shoud put it at #2.remote vs. local# part.
+
+To globally set github account at local can save your effort to put account name and password everytime you want to push/pull to your own account.
+
+```{r account, eval=F}
+# for example I set global account as rladiesPHL. This will save the global configuration to a ~/.gitconfig file. It will prompt password for you to input
+git config --global user.email "philly@rladies.org"
+git config --global user.name "rladiesPHL"
+```
+
+Howver, sometimes I want to switch back to my personal account temperally to do a quick push. I wish git will prompt account and password for me to input
+
+```{r account2, eval=F}
+# reset global account a little bit
+git config --local credential.helper ""
+
+# when you push, it will prompt account and password for me to input
+git push origin master
+```
+
+All above are the frequently used git commands I used. Hope it will help anyone who is willing to use git version in their future project.

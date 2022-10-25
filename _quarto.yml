@@ -7,8 +7,6 @@ website:
   description: "This is Chun Su's personal blog"
   navbar:
     right:
-      - text: About
-        href: about.qmd
       - text: Posts
         href: posts.qmd
       - text: Talks
@@ -21,6 +19,9 @@ format:
         light: cerulean
         dark: darkly
     css: styles.css
+    code-fold: show
+    code-overflow: scroll
+
 
 editor: visual
 

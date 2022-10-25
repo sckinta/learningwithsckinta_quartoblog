@@ -1,6 +1,5 @@
 ---
 title: "Network visualization - Part 3"
-author: "Sckinta"
 date: "2019-09-04"
 categories: ["R", "network", "visualization"]
 execute:
@@ -285,23 +284,21 @@ More functions about ggraph refer to https://www.rdocumentation.org/packages/ggr
 
 There are many other packages available for graph visualization and network analysis. In this series, I will only list the link here for the further reference. I may come back to further this topic in the future when necessary.
 
-**Network analysis tool**: Statnet[^1]  
+**Network analysis tool**: Statnet[^1]
 
+[^1]: https://statnet.org/trac/wiki
 
+**Network visualization**: ggnet[^2]
 
-**Network visualization**: ggnet[^2] 
+[^2]: https://briatte.github.io/ggnet/
 
 **Interactive network** :
 
-- visNetwork[^3]
+-   visNetwork[^3]
 
-- jstree[^4]
+-   jstree[^4]
 
-- Ndtv[^5]
-
-[^1]:  https://statnet.org/trac/wiki
-
-[^2]: https://briatte.github.io/ggnet/
+-   Ndtv[^5]
 
 [^3]: https://datastorm-open.github.io/visNetwork/
 

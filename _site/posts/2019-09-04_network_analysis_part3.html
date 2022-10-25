@@ -147,9 +147,6 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="../about.html">About</a>
-  </li>  
-  <li class="nav-item">
     <a class="nav-link" href="../posts.html">Posts</a>
   </li>  
   <li class="nav-item">
@@ -232,6 +229,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h1>Aesthetics of network elements</h1>
 <p>The aesthetics of both vertices and edges can be manipulated at color, transparency. Specially for vertices, we can also manipulate its shape, size and fill. For edges, we can manipulate its width/thickness, linetype, arrow and so on. Here, use simple example “actors” to show you how to present aesthetics using <code>igraph</code> default plot and <code>ggraph</code></p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>actors <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">name=</span><span class="fu">c</span>(<span class="st">"Alice"</span>, <span class="st">"Bob"</span>, <span class="st">"Cecil"</span>, <span class="st">"David"</span>,<span class="st">"Esmeralda"</span>),</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">age=</span><span class="fu">c</span>(<span class="dv">48</span>,<span class="dv">33</span>,<span class="dv">45</span>,<span class="dv">34</span>,<span class="dv">21</span>),</span>
@@ -244,36 +243,46 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">advice=</span><span class="fu">c</span>(<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">2</span>,<span class="dv">3</span>)</span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(relations, <span class="at">directed=</span><span class="cn">TRUE</span>, <span class="at">vertices=</span>actors)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <section id="vertex-aesthetics" class="level2">
 <h2 class="anchored" data-anchor-id="vertex-aesthetics">Vertex aesthetics</h2>
 <p>Specify aesthetics in vertex attribute</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make female and male color different</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> <span class="fu">as_data_frame</span>(g, <span class="at">what=</span><span class="st">"vertice"</span>) <span class="sc">%&gt;%</span> as_tibble <span class="sc">%&gt;%</span> </span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">color=</span><span class="fu">case_when</span>(gender<span class="sc">==</span><span class="st">"F"</span> <span class="sc">~</span> <span class="st">"red"</span>, gender<span class="sc">==</span><span class="st">"M"</span> <span class="sc">~</span> <span class="st">"blue"</span>))</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"color"</span>, <span class="at">value=</span>v<span class="sc">$</span>color)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/vertice_aes_igraph-1.png" class="img-fluid" width="672"></p>
 </div>
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make age as size</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> v <span class="sc">%&gt;%</span> </span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">size=</span><span class="fu">case_when</span>(age <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">~</span> <span class="dv">10</span>, age <span class="sc">&lt;</span> <span class="dv">40</span> <span class="sc">&amp;</span> age <span class="sc">&gt;</span><span class="dv">30</span> <span class="sc">~</span> <span class="dv">20</span>, age <span class="sc">&gt;</span> <span class="dv">40</span> <span class="sc">~</span> <span class="dv">30</span>))</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"size"</span>, <span class="at">value=</span>v<span class="sc">$</span>size)</span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/vertice_aes_igraph-2.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>The methods mentioned above can also be done by specify in <code>plot()</code>. One quick example below show the shape aesthetics. Check igraph valid shape names by <code>names(igraph:::.igraph.shapes)</code></p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make gender as shape</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> v <span class="sc">%&gt;%</span> </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">shape=</span><span class="fu">case_when</span>(gender<span class="sc">==</span><span class="st">"F"</span> <span class="sc">~</span> <span class="st">"circle"</span>, gender<span class="sc">==</span><span class="st">"M"</span> <span class="sc">~</span> <span class="st">"rectangle"</span>))</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">vertex.shape=</span>v<span class="sc">$</span>shape)</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">'topleft'</span>,<span class="at">legend=</span><span class="fu">unique</span>(v<span class="sc">$</span>gender),<span class="at">pch=</span><span class="fu">c</span>(<span class="dv">21</span>, <span class="dv">22</span>),<span class="at">pt.bg=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/vertice_aes_igraph2-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -281,6 +290,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Be aware that the aesthetics specified by attributes can be overwritten by specifying in <code>plot()</code>. In addition, those aesthetics can also be used to apply to all vertices like <code>plot(g, vertex.shape="rectangle")</code>. The attributes to be manipulated in igraph (using base R) are limited. To find all the plotting attributes, try <code>?plot.igraph</code> or go to https://igraph.org/r/doc/plot.common.html</p>
 <p>We can also draw attention to certain nodes by <code>mark.groups</code> in plot</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># mark dept</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"dept"</span>,<span class="at">value=</span><span class="fu">c</span>(<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_edge_attr</span>(<span class="st">"same.dept"</span>,<span class="at">value=</span><span class="fu">c</span>(F,F,T,F,T,T))</span>
@@ -291,12 +302,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>       <span class="fu">unlist</span>(v <span class="sc">%&gt;%</span> <span class="fu">filter</span>(dept<span class="sc">==</span><span class="st">"IT"</span>) <span class="sc">%&gt;%</span> <span class="fu">select</span>(name))</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>       ), </span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>     <span class="at">mark.col=</span><span class="fu">c</span>(<span class="st">"#C5E5E7"</span>,<span class="st">"#ECD89A"</span>), <span class="at">mark.border=</span><span class="cn">NA</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/mark.groups-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p><code>ggraph</code> is a ggplot version of graph plotting. Using graph object as input, it can convert vertice attributes to plot attribute automatically or manually.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>v <span class="ot">=</span> v <span class="sc">%&gt;%</span> </span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">age_range=</span><span class="fu">case_when</span>(age <span class="sc">&lt;</span> <span class="dv">30</span> <span class="sc">~</span> <span class="dv">20</span>, age <span class="sc">&lt;</span> <span class="dv">40</span> <span class="sc">&amp;</span> age <span class="sc">&gt;</span><span class="dv">30</span> <span class="sc">~</span> <span class="dv">30</span>, age <span class="sc">&gt;</span> <span class="dv">40</span> <span class="sc">~</span> <span class="dv">40</span>))</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"age_range"</span>, <span class="at">value=</span>v<span class="sc">$</span>age_range)</span>
@@ -306,6 +320,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>() <span class="sc">+</span></span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_size_continuous</span>(<span class="at">breaks=</span><span class="fu">c</span>(<span class="dv">20</span>,<span class="dv">30</span>,<span class="dv">40</span>), <span class="at">range =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">6</span>)) <span class="sc">+</span></span>
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/vertice_aes_ggraph-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -316,6 +331,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 class="anchored" data-anchor-id="edge-aesthetics">Edge aesthetics</h2>
 <p>Similar to vertex aesthetics, edge plotting aesthetics can be manipulated both {<code>igraph</code>} default plotting and {<code>ggraph</code>} plotting</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use linetype present whether come from same department, and line width presents friendship</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>e <span class="ot">=</span> <span class="fu">as_data_frame</span>(g, <span class="at">what=</span><span class="st">"edges"</span>) <span class="sc">%&gt;%</span> as_tibble <span class="sc">%&gt;%</span> </span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">width=</span>friendship) <span class="sc">%&gt;%</span> </span>
@@ -328,18 +345,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="at">legend=</span><span class="fu">unique</span>(v<span class="sc">$</span>gender),<span class="at">pch=</span><span class="dv">21</span>,<span class="at">pt.bg=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>), <span class="at">title=</span><span class="st">"gender"</span>, <span class="at">box.lty=</span><span class="dv">0</span>)</span>
 <span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"left"</span>,<span class="at">legend=</span><span class="fu">unique</span>(e<span class="sc">$</span>same.dept),<span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="at">title =</span> <span class="st">"same.dept"</span>,<span class="at">box.lty=</span><span class="dv">0</span>)</span>
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend=</span><span class="fu">sort</span>(<span class="fu">unique</span>(e<span class="sc">$</span>friendship)), <span class="at">lwd=</span><span class="fu">sort</span>(<span class="fu">unique</span>(e<span class="sc">$</span>friendship)), <span class="at">title=</span><span class="st">"friendship"</span>, <span class="at">box.lty=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/edge_aesthetics_igraph-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Using {<code>ggraph</code>} to show edges attribute is much easier.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(g, <span class="at">layout=</span><span class="st">"kk"</span>) <span class="sc">+</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>(<span class="fu">aes</span>(<span class="at">edge_width=</span>friendship, <span class="at">edge_linetype=</span>same.dept), <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">angle=</span><span class="dv">5</span>, <span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.3</span>, <span class="st">"inches"</span>))) <span class="sc">+</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="fu">aes</span>(<span class="at">color=</span>gender), <span class="at">size=</span><span class="dv">6</span>) <span class="sc">+</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label=</span>name), <span class="at">nudge_y =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">nudge_x =</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_width</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)) <span class="sc">+</span></span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/edge_aesthetics_ggraph-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -349,6 +370,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h2 class="anchored" data-anchor-id="facet">Facet</h2>
 <p>One big advantage of {<code>ggraph</code>} is to use facet. It can be <code>facet_edges</code> or <code>facet_nodes</code> or <code>facet_graph</code>. Here I will only show example of <code>facet_nodes</code>.</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"dept"</span>,<span class="at">value=</span><span class="fu">c</span>(<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_edge_attr</span>(<span class="st">"same.dept"</span>,<span class="at">value=</span><span class="fu">c</span>(F,F,T,F,T,T))</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -359,6 +382,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="fu">aes</span>(<span class="at">color=</span>gender), <span class="at">size=</span><span class="dv">6</span>) <span class="sc">+</span></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label=</span>name), <span class="at">nudge_y =</span> <span class="sc">-</span><span class="fl">0.1</span>, <span class="at">nudge_x =</span> <span class="sc">-</span><span class="fl">0.1</span>) <span class="sc">+</span></span>
 <span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_width</span>(<span class="at">range =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/facet_nodes-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -395,6 +419,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <p>Here we are going to show an example how to switch standard layout using the same data</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow=</span><span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">3</span>))</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co"># star layout -- help determine center</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">layout_</span>(g, <span class="fu">as_star</span>())</span>
@@ -425,12 +451,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>coords <span class="ot">&lt;-</span> <span class="fu">layout_</span>(g, <span class="fu">with_fr</span>())</span>
 <span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(g, <span class="at">layout =</span> coords, <span class="at">edge.arrow.size=</span><span class="fl">0.4</span>)</span>
 <span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="st">"force-directed(fr)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/layout_igraph-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>Hierarchical layouts can plot data in layer. Here show example how to use sugiyama layout</p>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make different dept nodes at different node</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>g <span class="ot">=</span> g <span class="sc">%&gt;%</span> <span class="fu">set_vertex_attr</span>(<span class="st">"dept"</span>,<span class="at">value=</span><span class="fu">c</span>(<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>,<span class="st">"IT"</span>,<span class="st">"sale"</span>)) <span class="sc">%&gt;%</span> </span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_edge_attr</span>(<span class="st">"same.dept"</span>,<span class="at">value=</span><span class="fu">c</span>(F,F,T,F,T,T))</span>
@@ -450,6 +479,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topleft"</span>, <span class="at">legend=</span><span class="fu">unique</span>(v<span class="sc">$</span>gender),<span class="at">pch=</span><span class="dv">21</span>,<span class="at">pt.bg=</span><span class="fu">c</span>(<span class="st">"red"</span>,<span class="st">"blue"</span>), <span class="at">title=</span><span class="st">"gender"</span>, <span class="at">box.lty=</span><span class="dv">0</span>)</span>
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"left"</span>,<span class="at">legend=</span><span class="fu">unique</span>(e<span class="sc">$</span>same.dept),<span class="at">lty=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>), <span class="at">title =</span> <span class="st">"same.dept"</span>,<span class="at">box.lty=</span><span class="dv">0</span>)</span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">"topright"</span>, <span class="at">legend=</span><span class="fu">sort</span>(<span class="fu">unique</span>(e<span class="sc">$</span>friendship)), <span class="at">lwd=</span><span class="fu">sort</span>(<span class="fu">unique</span>(e<span class="sc">$</span>friendship)), <span class="at">title=</span><span class="st">"friendship"</span>, <span class="at">box.lty=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/sugiyama_layout-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -459,6 +489,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>dendrogram: dendrogram layout not only take in graph object but also dendrogram object (<code>as.dendrogram(hclust(dist(...)))</code>). ggraph will automatically convert dendrogram to igraph by <code>den_to_igraph</code>. It ususally plots using <code>geom_edge_diagonal()</code> or <code>geom_edge_elbow()</code></li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>den <span class="ot">&lt;-</span> <span class="fu">as.dendrogram</span>(<span class="fu">hclust</span>(<span class="fu">dist</span>(mtcars)))</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">=</span> <span class="fu">ggraph</span>(den, <span class="st">'dendrogram'</span>) <span class="sc">+</span> </span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_edge_diagonal</span>() <span class="sc">+</span></span>
@@ -470,6 +502,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_fixed</span>()<span class="sc">+</span></span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">grid.arrange</span>(p1,p2,<span class="at">ncol=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/dendrogram-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -478,6 +511,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>hive: make nodes group into a axis and connecting axis instead.</li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">V</span>(g)<span class="sc">$</span>age_range <span class="ot">=</span> <span class="fu">factor</span>(<span class="fu">V</span>(g)<span class="sc">$</span>age_range)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(g, <span class="st">'hive'</span>, <span class="at">axis =</span> age_range, <span class="at">sort.by =</span> age) <span class="sc">+</span> </span>
@@ -485,6 +520,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_axis_hive</span>(<span class="fu">aes</span>(<span class="at">color =</span> age_range), <span class="at">size =</span> <span class="dv">3</span>, <span class="at">label =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> </span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">coord_fixed</span>() <span class="sc">+</span></span>
 <span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_width</span>(<span class="at">range=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/hive-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -493,12 +529,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>linear: make nodes only the same line so that arc connections were made</li>
 </ul>
 <div class="cell">
+<details open="">
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(g, <span class="at">layout =</span> <span class="st">'linear'</span>, <span class="at">sort.by =</span> age) <span class="sc">+</span> </span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_edge_arc</span>(<span class="fu">aes</span>(<span class="at">colour =</span> <span class="fu">factor</span>(same.dept), <span class="at">edge_alpha=</span>friendship)) <span class="sc">+</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="fu">aes</span>(<span class="at">color=</span>gender), <span class="at">size=</span><span class="dv">4</span>, <span class="at">alpha=</span><span class="fl">0.5</span>) <span class="sc">+</span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label=</span>name), <span class="at">angle=</span><span class="dv">45</span>) <span class="sc">+</span></span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_alpha</span>(<span class="at">range=</span><span class="fu">c</span>(<span class="fl">0.3</span>,<span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output-display">
 <p><img src="2019-09-04_network_analysis_part3_files/figure-html/linear_arc-1.png" class="img-fluid" width="672"></p>
 </div>
