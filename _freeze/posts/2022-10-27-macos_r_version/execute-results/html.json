@@ -1,0 +1,14 @@
+{
+  "hash": "64dd109a64b5b5f7b941a8d10f61e279",
+  "result": {
+    "markdown": "---\ntitle: \"Install multiple version of R in MacOS\"\ndate: \"2020-10-31\"\ncategories: [\"MacOS\", \"R\"]\nimage: \"https://www.macworld.com/wp-content/uploads/2022/04/mac-recovery-mode.jpg\"\n---\n\n\n\n\n\nMac, by default, save R executable and relevant libraries at `/Library/Frameworks/R.framework/Versions/`. Here is the tree structure of my \"R.framework\" (`tree -L 3 /Library/Frameworks/R.framework`)\n\n\n::: {.cell}\n\n```{.bash .cell-code}\n    /Library/Frameworks/R.framework\n    ├── Headers -> Versions/Current/Headers\n    ├── Libraries -> Versions/Current/Resources/lib\n    ├── PrivateHeaders -> Versions/Current/PrivateHeaders\n    ├── R -> Versions/Current/R\n    ├── Resources -> Versions/Current/Resources\n    └── Versions\n        ├── 4.1\n        │   ├── Headers -> Resources/include\n        │   ├── PrivateHeaders\n        │   ├── R -> Resources/lib/libR.dylib\n        │   └── Resources\n        └── Current -> /Library/Frameworks/R.framework/Versions/4.1\n```\n:::\n\n\n-   The R package libraries were saved under `Resources/library`\n\n-   R which is symbolic linked to `Resources/lib/libR.dylib` is the executable.\n\nUsually, if you just download new version binary installer (`*.pkg`) from [CRAN](https://cran.r-project.org/) and use GUI to install, it will 1) remove the original executable, 2) symbolic link `Current` to the new version.\n\n1.  get source package from https://mac.r-project.org/\n\n\n::: {.cell}\n\n```{.bash .cell-code}\n# download source\n curl -O https://mac.r-project.org/high-sierra/R-4.2-branch/x86_64/R-4.2-branch.tar.gz\n\n# extract to folder 4.2\nmkdir -p 4.2/\ntar xfzv R-4.2-branch.tar.gz --directory 4.2\n```\n:::\n\n\n2.  move to destination folder Inside 4.2 folder will be very similar to mac structure `Library/Frameworks/R.framework/Versions/4.2`, thus copy it to mac default R folder `/Library/Frameworks/R.framework/Versions/4.2`\n\n\n::: {.cell}\n\n```{.bash .cell-code}\n# rm -rf /Library/Frameworks/R.framework/Versions/4.2\ncp -R Library/Frameworks/R.framework/Versions/4.2 /Library/Frameworks/R.framework/Versions/\n```\n:::\n\n\n3.  install Rswitch\n\n[Rswitch](https://rud.is/rswitch/) is a light-weight utility for macOS R users, which can help easily switch active R version. It basically re-establish symbolic link of `Current` mentioned above to the version you selected.\n\nAfter installation and open, Rswitch shows as a little control panel at right corner of top menu.\n\n![](./2022-10-27-macos_r_version.fig1.png){width=\"50%\"}\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
