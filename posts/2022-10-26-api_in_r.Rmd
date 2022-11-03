@@ -1,0 +1,103 @@
+---
+title: "Use API in R and solve common errors"
+date: '2022-10-26'
+categories: ["R", "API"]
+image: 'https://www.elemental.co.za/cms/resources/uploads/blog/86/926f6aaba773.png'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+An API (Application Programming Interface) is an intermediary between a large dataset and the applications at user end. It provides an accessible way to request data from a dataset by URL.
+
+There are several methods to communicate with API server, including `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD` and `OPTIONS`[^1]. Here we will focus on GET requests which is the most common and widely used methods in APIs.
+
+[^1]: https://assertible.com/blog/7-http-methods-every-web-developer-should-know-and-how-to-test-them
+
+In R, the {`httr`} package is used to access API using URL.
+
+## `GET` data
+
+The steps to convert retrieved API data to standard R object, include
+
+1.  determine request URL. Usually this is database specific. It requires to read database API page
+2.  construct GET URL using `paste` or `glue` string conjugation functions in R
+3.  exact raw type data and convert raw to character `rawToChar(raw_data$content)`
+4.  convert character to R objects. Depends on character format, the usual format include table (aka, separator are \t and \n) or [json](https://www.json.org/json-en.html). If it is json, using `jsonlite::fromJSON` to convert to `list`. If it is table, use `read.table(text = char_data)` to convert to `data.frame`.
+
+Here I used protein interaction database (STRING) as example to access API. The methods for STRING API can be found at [STING help page](https://string-db.org/help/api/).
+
+```{r}
+library(httr)
+string_url <- 'https://string-db.org'
+
+genelist <- c("PRMT5", "PRMT1", "MTAP")
+        
+raw_data <- GET(
+        paste0(
+                string_url,
+                '/api/tsv/ppi_enrichment?identifiers=',
+                paste(genelist, collapse = "%0d"),
+                "&species=9606"
+        ) # create complete url
+)
+```
+
+`raw` class data is like
+
+```{r echo=F}
+raw_data$content
+```
+
+Convert raw data to R object `data.frame`
+
+```{r}
+char_data <- rawToChar(raw_data$content) # using raw_data$content exact raw type data and convert raw to character
+
+char_data
+
+if (!grepl("Error|error", char_data)) { # to filter error out
+        read.table(text = char_data, header = T)  # convert raw data into data.frame
+}
+```
+
+For the json example, refer to Joachim Schork's blog post on time series COVID data [^2].
+
+[^2]: https://statisticsglobe.com/api-in-r
+
+## common issues
+
+### unable to get local issuer certificate
+
+> Error in curl::curl_fetch_memory(url, handle = handle) : SSL peer certificate or SSH remote key was not OK: \[string-db.org\] SSL certificate problem: unable to get local issuer certificate.
+
+It is due to no libcurl or right version of libcurl in `LD_LIBRARY_PATH`. By default, LD should point to `LD_LIBRARY_PATH` then `/usr/lib:/usr/lib64`. Try `ldconfig -v | grep libcurl` or `ls /usr/lib64/libcurl*` in terminal, it points whether libcurl is available in your OS. If no found, install by `sudo yum install libcurl-devel` in RedHat7
+
+In my case, `LD_LIBRARY_PATH` point to conda lib `/home/csu03/miniconda3/lib` which is based on Python 3.9, while OS system default Python 2.7. I solved the above issue by `export LD_LIBRARY_PATH=/usr/lib:/usr/lib64:$LD_LIBRARY_PATH` before enter R.[^3]
+
+[^3]: https://stackoverflow.com/questions/45591298/crypto-num-locks-error-occurs-due-to-two-versions-of-libcurl-on-centos-7
+
+In the above reference, it also solve the `yum update` error like below
+
+> here was a problem importing one of the Python modules required to run yum. The error leading to this problem was:
+>
+> /usr/lib64/python2.7/site-packages/pycurl.so: undefined symbol: CRYPTO_num_locks.
+>
+> Please install a package which provides this module, or verify that the module is installed correctly.
+>
+> It's possible that the above module doesn't match the current version of Python, which is: 2.7.5 (default, Aug 13 2020, 02:51:10) \[GCC 4.8.5 20150623 (Red Hat 4.8.5-39)\]
+>
+> If you cannot solve this problem yourself, please go to the yum faq at: http://yum.baseurl.org/wiki/Faq
+
+### Peer's Certificate issuer is not recognized.
+
+> Error in curl::curl_fetch_memory(url, handle = handle) : Peer certificate cannot be authenticated with given CA certificates: \[string-db.org\] Peer's Certificate issuer is not recognized.
+
+It could be firewall and proxy issue. Based on this post[^4], adding following in R code
+
+[^4]: https://www.r-bloggers.com/2016/09/fixing-peer-certificate-cannot-be-authenticated/
+
+```{r eval=F}
+set_config(config(ssl_verifypeer = 0L))
+```
