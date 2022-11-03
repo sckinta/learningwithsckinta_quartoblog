@@ -1,5 +1,5 @@
 ---
-image: https://media-exp1.licdn.com/dms/image/C4E03AQH2-cbjQTrAKw/profile-displayphoto-shrink_800_800/0/1516780179563?e=1667433600&v=beta&t=ycj2c4SfbINkl4kwmciBOz0itQXDqzdxYhCp82HZ0-I
+image: https://media.licdn.com/dms/image/C4E03AQH2-cbjQTrAKw/profile-displayphoto-shrink_800_800/0/1516780179563?e=1672876800&v=beta&t=VUtatpPemcPINdA8MBwiIoDAjDrV3CZmvg1YDoSCEQA
 about:
   template: jolla
   links:
