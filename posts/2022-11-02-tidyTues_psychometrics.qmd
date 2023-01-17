@@ -1,0 +1,110 @@
+---
+title: "TidyTuesday: Open Psychometrics 2022Wk33"
+author: "Chun Su"
+categories: ["MacOS", "R"]
+image: "https://blog.trginternational.com/hubfs/images/cover.png"
+execute: 
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: false
+      code-overflow: wrap
+---
+
+[TidyTuesday 2022-08-16](https://github.com/rfordatascience/tidytuesday/tree/master/data/2022/2022-08-16)
+
+[open psychometrics](https://openpsychometrics.org/tests/characters/documentation/)
+
+Two tasks: - make a image-loaded fancy ggplot - use questions to predict myers_briggs type
+
+Discussion: - how to use rating user number and standard deviation from the data - other ideas worth to try
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+library(ggimage)
+theme_set(theme_bw())
+
+characters <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-08-16/characters.csv')
+
+myers_briggs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-08-16/myers_briggs.csv')
+
+psych_stats <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-08-16/psych_stats.csv')
+
+```
+
+
+ESTJ: extraversion (E), sensing (S), thinking (T), judgment (J)
+INFP: introversion (I), intuition (N), feeling (F), perception (P)
+
+# EDA
+
+## How `avg_rating` is related to `personality` and `question`?
+
+For each question (`question`), it has two directions eg. messy/neat. All the `avg_rating` is >= 50. Based on a few characters I know, my understanding is, `avg_rating` indicates how confident that each character is defined as given `personality`, with closer to 100 meaning most confident, while closer to 50 meaning not sure. 
+
+The `psych_stats` will be re-formatted to each `question` has only one rating with more positive towards the first `personality` and more negative towards second `personality` while closer to 0 means unsure. 
+
+
+```{r}
+
+# determine the side (left/right) of personality on question.
+psych_questions <- psych_stats |>
+    distinct(question, personality) |>
+    filter(!str_detect(question, ".+\\/.+\\/")) |>
+    separate(question,
+             c("left", "right"),
+             sep = "\\/",
+             remove = F) |>
+    bind_rows(
+        psych_stats |>
+            distinct(question, personality) |>
+            filter(str_detect(question, ".+\\/.+\\/")) |>
+            mutate(left = 'boy/girl-next-door', right = 'celebrity')
+    ) |> 
+    mutate(direction = case_when(
+        left==personality ~ 'left',
+        right==personality ~ 'right'
+    )) |> 
+    select(question, personality, direction) |> 
+    arrange(question, direction)
+
+psych_stats_modified <- psych_stats |> 
+    left_join(psych_questions) |> 
+    mutate(modified_rating = case_when(
+        direction == "left" ~ -(avg_rating - 50) * 2,
+        direction == "right" ~ (avg_rating - 50) * 2
+    )) |> 
+    select(char_name, uni_name, question, modified_rating)
+```
+
+
+Sanity check - most messy and neat characters across universe.
+
+```{r}
+#| fig-width: 5
+#| fig-height: 4.5
+#| fig-align: center
+#| 
+psych_stats_modified |> 
+    filter(question == "messy/neat") |> 
+    arrange(modified_rating) |> 
+    dplyr::slice(c(1:10, (n()-9):n())) |> 
+    left_join(
+        characters |> 
+            select(char_name = name, uni_name, image_link)
+    ) |> 
+    ggplot(aes(x = modified_rating, y = fct_reorder(char_name, modified_rating))) +
+    geom_col(aes(fill = modified_rating)) +
+    geom_image(aes(x=0, image=image_link)) + 
+    geom_text(aes(x = sign(modified_rating) * 50, label = char_name), color = 'white') + 
+    scale_fill_gradient2() +
+    labs(x = "messy <-> neat", y = "") +
+    theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        legend.position = "none") +
+    ggtitle("Top 10 characters on messy/neat")
+```
+

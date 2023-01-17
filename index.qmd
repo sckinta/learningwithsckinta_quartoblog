@@ -1,5 +1,5 @@
 ---
-image: https://media.licdn.com/dms/image/C4E03AQH2-cbjQTrAKw/profile-displayphoto-shrink_800_800/0/1516780179563?e=1672876800&v=beta&t=VUtatpPemcPINdA8MBwiIoDAjDrV3CZmvg1YDoSCEQA
+image: ./linkedin.jpeg
 about:
   template: jolla
   links:
