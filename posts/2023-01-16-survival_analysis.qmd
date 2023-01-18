@@ -1,0 +1,204 @@
+---
+title: "Understanding survival analysis"
+subtitle: "Evaluate gene effect on patient survival using TCGA cohort"
+author: "Chun su"
+date: "2023-01-16"
+categories: ["statistics", "R", "bioinformatics"]
+execute: 
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: false
+      code-overflow: wrap
+---
+
+I have been performing survival analysis for a while. Although I can create standard survival curves and summarize hypothesis testing tables, I have never really *UNDERSTOOD* it until recently. In this post, I will share some of my study notes to dive into the concepts, assumptions, deduction and result interpretations on survival analysis, using the [Cancer Genome Atlas (TCGA)](https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga) clinical data [^1] as example.
+
+[^1]: The clinical data can be downloaded from Table S1 of [Liu et al 2018 Cell paper](https://doi.org/10.1016/j.cell.2018.02.052); The gene expression are retrieve using R package [`{TCGAbiolinks}`](https://bioconductor.org/packages/release/bioc/html/TCGAbiolinks.html) 
+
+# Basic concepts
+
+## censoring and types of event
+
+**Censoring** is a condition in which the value of a measurement or observation is only partially known [^2]. In clinical trial, a sample is labeled censored when information on time to event is unavailable due to the loss to follow-up or non-occurrence of outcome event before the trial end. The event can be death or disease relapse.
+
+[^2]: https://en.wikipedia.org/wiki/Censoring\_(statistics)
+
+-   Overall survival (OS)
+
+-   disease-specific survival (DSS)
+
+-   disease-free interval (DFI)
+
+-   progression-free interval (PFI)
+
+Compared to DFI and PFI, OS or DSS demands longer follow-up time because patients generally develop disease recurrence or progression before dying of their disease.
+
+Selection of a specific survival endpoint also depends on the study goal.
+
+-   A clinical trial testing the effect of a drug's ability to delay or prevent cancer progression would use PFI as the most appropriate endpoint.
+
+-   In TCGA clinical data, the short-term clinical follow-up intervals favor outcome analyses in more aggressive cancer types, which are likely to observe events within a couple of years. Studies with less aggressive cancer types, in which patients relapse only after many years or even decades, may not observe enough events during their follow-up intervals to support reliable outcome determinations.
+
+## survival time (T) vs. censoring time (C)
+
+-   **survival time**: the true time at which event occurs: occur before trial ends ($T < period limit$), occur after trial ends ($T > period limit$)
+
+-   **censoring time**: time at which drop out ($C < period limit$) or study ends ($C = period limit$)
+
+## observed pair (Y, sigma)
+
+-   **random variable**: $Y = min(T, C)$
+
+-   **status indicator**: $\sigma$ = 1 or 0
+
+    -   No event - sigma = 0: Y = C; drop out ($T > C$, $\sigma$ = 0) or survived beyond ($T > C$, $\sigma$=0)
+
+    -   With event - sigma = 1: Y = T; event happened (T ≤ C, $\sigma$ = 1)
+
+## censoring types
+
+-   **right censoring**: T ≥ Y (expected Y ≤ period limit, with event (sigma=1) is defined as $T < limit$). This is the most common one.
+
+-   **left censoring**: T ≤ Y (expected Y ≥ period limit; with event (sigma=1) is defined as $T > limit$)
+
+-   **internal censoring**: we do not know T value ( limit 0 ≤ expected Y ≤ limit 1; with event (sigma=1) is defined as T within (limit 0, limit 1))
+
+## survival analysis assumption
+
+**censoring mechanism is independent:** conditional on the features, the event time T is independent of the censoring time C
+
+The examples that violated this assumption can be a number of patients drop out (C) of a cancer study early because they are very sick (T). Or males who are very sick (T) are more likely to drop out (C) of the study than females who are very sick.
+
+# Kaplan-Meier survival curve
+
+## `S(t) = Pr(T > t)`
+
+$S(t) = Pr(T > t)$: **the probability of surviving past time t**. The larger the value of S(t), the less likely that the patient will die before time t.
+
+However, due to the censoring in the data, we do not always know T. Instead we can only read observed pair $(Y,\sigma)$ in which Y = min(T,C).
+
+## K-M estimator
+
+K-M estimator is a **product limit estimator** to estimate S(t) using $(Y, \sigma)$.
+
+1.  sort all censored samples ($\sigma=0$) based on their T (here Y = T), and the new rank become $i$, and the survival time at each rank is $t_i$.
+
+2.  count the number of samples not dead $n_i$ at $t_i$. This number can be any sample (no matter censored or not) with $Y > t_i$. it is also called **"samples at risk"**.
+
+3.  count the number of samples died $d_i$ at time point $t_i$.
+
+4.  to estimate S(t), calculate **surviving proportion** ($p_i$) at each censored time ($t_i$).
+
+$$p_i = (n_i - d_i)/n_i$$
+
+5.  The $S\hat(t{i})$ is the product of all censored $p_i$ before $t_i$.
+
+$$S\hat(t_i) = \prod_{1}^{i} p_i$$.
+
+Xu wrote make a "AHA" example to show how $S\hat(t_i)$ was calculated [^3].
+
+[^3]: https://mp.weixin.qq.com/s/QWqnEM3poxx4g71yr0eVUQ
+
+![](./2023-01-16-survival_analysis.fig0.png)
+
+The process to calculate K-M estimator:
+
+![](./2023-01-16-survival_analysis.fig1.png)
+
+Because of **product limit estimator**, the K-M survival curve is step-like, in which x axis represents $t_i$ and y represents $S\hat(t_i)$.
+
+# log-rank test
+
+The log-rank test is a nonparametric hypothesis test to test whether there is difference between two independent groups.
+
+## Chi-squared test like log-rank statistics.
+
+It can be calculated pretty much in the same way as chi-square test $\chi^2 = \sum((O_i - E_i)^2/E_i)$
+
+1.  expected sample number to be dead in group A $E_{Ai}$ at time point $t_i$.
+
+$$E_{Ai} = (d_{Ai} + d_{Bi})/(n_{Ai} + n_{Bi}) * n_{Ai}$$
+
+2.  observed sample number to be dead in group A $O_{Ai}$ at time point $t_i$.
+
+$$O_{Ai} = d_{Ai}$$
+
+3.  total $\chi^2$ can be calculated as
+
+$$\chi^2 = \sum((O_{Ai} - E_{Ai})^2/E_{Ai}) + \sum((O_{Bi} - E_{Bi})^2/E_{Bi})$$
+
+4.  use $\chi^2$ to estimate p-value.
+
+## Variations of log rank statistics
+
+As noted, there are several variations of the log rank statistic [^4]. Some statistical computing packages use the following test statistic for the log rank test to compare two independent groups:
+
+[^4]: https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_survival/BS704_Survival5.html
+
+$$\chi^2 = (\sum O_{Ai} - \sum E_{Ai})^2 / \sum Var(E_{Ai})$$
+
+Where
+
+$$Var(E_{Ai}) = n_{Ai} * n_{Bi} * (n_{Ai} + n_{Bi} - d_{Ai} - d_{Bi})/ ((n_{Ai} + n_{Bi})^2 * (n_{Ai} + n_{Bi}-1))$$
+
+[ISLR2](https://www.statlearning.com/) and [wiki page](https://en.wikipedia.org/wiki/Logrank_test) used a modified Wilcoxon test to compare survival functions between independent groups.
+
+$$W = \sum(O_{Ai} -  E_{Ai}) / \sqrt{\sum Var(E_{Ai})}$$
+
+where
+
+$$Var(E_{Ai}) = E_{Ai}*(n_{Ai} + n_{Bi} - d_{Ai} - d_{Bi})/ ((n_{Ai} + n_{Bi})*(n_{Bi}/(n_{Ai} + n_{Bi}-1))$$
+
+# Cox proportional hazard
+
+## hazard function
+
+-   **cumulative distribution function F(t)**
+
+-   **probability density function f(t)**
+
+-   **survival function S(t)**
+
+-   **hazard function h(t)**
+
+-   **cumulative hazard H(t)**
+
+## proportional hazard
+
+## Cox proportional hazards model
+
+**hazard ratio**
+
+### stratify co-variate
+
+## shrinkage on cox model
+
+# important notes
+
+## S(t) vs. h(t)
+
+-   S(t) survival curve is the cumulative probability. that *an event that not happen* (eg. death) at given time t.
+
+-   h(t) proportional hazard is the chance/prob. that *an event that happen (death)* at given t.
+
+    -   the regression model (Cox model) y is h(t\|x) instead of S(t), so that bigger beta corresponding to the coefficient of higher risk of death (compared to baseline h(t\|x0)).
+
+    -   S(t) curve plotted by default does not incorporate other co-variates, thus the visualization is more corresponding to log-rank test.
+
+    -   S(t) curve can be stratified to represent co-variate corrected curve (p.484)
+
+## Misleading results in TCGA survival analysis.
+
+-   Lead time bias: choose of different events, aka, earlier diagnosis can give false perception of longer survival, and diagnosis can be biased by clinical factors (e.g. fast-growing vs slow-growing tumors, onset of various symptoms, screening triggers)
+
+-   censored data bias: violate independent assumption, aka, patients with incomplete follow-up to reach time to event can be biased (e.g. drop out of study due to rapidly deteriorating health).
+
+-   proportional hazards assumption: Cox PH model assumes relative hazards are constant over time (e.g. violated if treatment has an initial beneficial effect but reduces survival at later time points)
+
+-   Uninteresting correlations and data substructure [^5]: There are many uninteresting reasons that a random subset of genes can seem to have a significant effect on survival (e.g. correlation with a proliferation signature; association with age and age bias in hazard rates)
+
+[^5]: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5839591/
+
+Some of these possibilities can be explored with additional analyses. For example, once could test hypotheses about influence of age on expression or whether a specific gene's impact on survival is more reflective of that gene's membership in a gene set associated with some broader characteristic such as tumor purity, immune infiltration, proliferation signature, tumor molecular sub type, etc.

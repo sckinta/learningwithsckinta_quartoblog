@@ -1,6 +1,7 @@
 ---
 title: "TidyTuesday: Open Psychometrics 2022Wk33"
 author: "Chun Su"
+date: "2022-11-02"
 categories: ["MacOS", "R"]
 image: "https://blog.trginternational.com/hubfs/images/cover.png"
 execute: 
@@ -34,18 +35,15 @@ psych_stats <- readr::read_csv('https://raw.githubusercontent.com/rfordatascienc
 
 ```
 
-
-ESTJ: extraversion (E), sensing (S), thinking (T), judgment (J)
-INFP: introversion (I), intuition (N), feeling (F), perception (P)
+ESTJ: extraversion (E), sensing (S), thinking (T), judgment (J) INFP: introversion (I), intuition (N), feeling (F), perception (P)
 
 # EDA
 
 ## How `avg_rating` is related to `personality` and `question`?
 
-For each question (`question`), it has two directions eg. messy/neat. All the `avg_rating` is >= 50. Based on a few characters I know, my understanding is, `avg_rating` indicates how confident that each character is defined as given `personality`, with closer to 100 meaning most confident, while closer to 50 meaning not sure. 
+For each question (`question`), it has two directions eg. messy/neat. All the `avg_rating` is \>= 50. Based on a few characters I know, my understanding is, `avg_rating` indicates how confident that each character is defined as given `personality`, with closer to 100 meaning most confident, while closer to 50 meaning not sure.
 
-The `psych_stats` will be re-formatted to each `question` has only one rating with more positive towards the first `personality` and more negative towards second `personality` while closer to 0 means unsure. 
-
+The `psych_stats` will be re-formatted to each `question` has only one rating with more positive towards the first `personality` and more negative towards second `personality` while closer to 0 means unsure.
 
 ```{r}
 
@@ -79,7 +77,6 @@ psych_stats_modified <- psych_stats |>
     select(char_name, uni_name, question, modified_rating)
 ```
 
-
 Sanity check - most messy and neat characters across universe.
 
 ```{r}
@@ -107,4 +104,3 @@ psych_stats_modified |>
         legend.position = "none") +
     ggtitle("Top 10 characters on messy/neat")
 ```
-
