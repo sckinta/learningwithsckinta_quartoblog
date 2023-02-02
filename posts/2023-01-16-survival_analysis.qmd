@@ -1,6 +1,6 @@
 ---
-title: "Understanding survival analysis"
-subtitle: "Evaluate gene effect on patient survival using TCGA cohort"
+title: "Understanding survival analysis - part 1"
+subtitle: "Evaluate patient survival using TCGA BRCA cohort"
 author: "Chun su"
 date: "2023-01-16"
 categories: ["statistics", "R", "bioinformatics"]
@@ -15,15 +15,17 @@ format:
 
 I have been performing survival analysis for a while. Although I can create standard survival curves and summarize hypothesis testing tables, I have never really *UNDERSTOOD* it until recently. In this post, I will share some of my study notes to dive into the concepts, assumptions, deduction and result interpretations on survival analysis, using the [Cancer Genome Atlas (TCGA)](https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga) clinical data [^1] as example.
 
-[^1]: The clinical data can be downloaded from Table S1 of [Liu et al 2018 Cell paper](https://doi.org/10.1016/j.cell.2018.02.052); The gene expression are retrieve using R package [`{TCGAbiolinks}`](https://bioconductor.org/packages/release/bioc/html/TCGAbiolinks.html) 
+[^1]: The clinical data can be downloaded from Table S1 of [Liu et al 2018 Cell paper](https://doi.org/10.1016/j.cell.2018.02.052); The gene expression are retrieve using R package [`{TCGAbiolinks}`](https://bioconductor.org/packages/release/bioc/html/TCGAbiolinks.html)
 
 # Basic concepts
 
-## censoring and types of event
+## censoring
 
 **Censoring** is a condition in which the value of a measurement or observation is only partially known [^2]. In clinical trial, a sample is labeled censored when information on time to event is unavailable due to the loss to follow-up or non-occurrence of outcome event before the trial end. The event can be death or disease relapse.
 
 [^2]: https://en.wikipedia.org/wiki/Censoring\_(statistics)
+
+## clinical outcome endpoint
 
 -   Overall survival (OS)
 
@@ -39,7 +41,9 @@ Selection of a specific survival endpoint also depends on the study goal.
 
 -   A clinical trial testing the effect of a drug's ability to delay or prevent cancer progression would use PFI as the most appropriate endpoint.
 
--   In TCGA clinical data, the short-term clinical follow-up intervals favor outcome analyses in more aggressive cancer types, which are likely to observe events within a couple of years. Studies with less aggressive cancer types, in which patients relapse only after many years or even decades, may not observe enough events during their follow-up intervals to support reliable outcome determinations.
+-   In TCGA clinical data, the short-term clinical follow-up intervals favor outcome analyses in more aggressive cancer types, which are likely to observe events within a couple of years. Studies with less aggressive cancer types, in which patients relapse only after many years or even decades, may not observe enough events during their follow-up intervals to support reliable outcome determinations [^3].
+
+[^3]: The clinical data can be downloaded from Table S1 of [Liu et al 2018 Cell paper](https://doi.org/10.1016/j.cell.2018.02.052); The gene expression are retrieve using R package [`{TCGAbiolinks}`](https://bioconductor.org/packages/release/bioc/html/TCGAbiolinks.html)
 
 ## survival time (T) vs. censoring time (C)
 
@@ -97,9 +101,9 @@ $$p_i = (n_i - d_i)/n_i$$
 
 $$S\hat(t_i) = \prod_{1}^{i} p_i$$.
 
-Xu wrote make a "AHA" example to show how $S\hat(t_i)$ was calculated [^3].
+Xu wrote make a "AHA" example to show how $S\hat(t_i)$ was calculated [^4].
 
-[^3]: https://mp.weixin.qq.com/s/QWqnEM3poxx4g71yr0eVUQ
+[^4]: https://mp.weixin.qq.com/s/QWqnEM3poxx4g71yr0eVUQ
 
 ![](./2023-01-16-survival_analysis.fig0.png)
 
@@ -108,6 +112,66 @@ The process to calculate K-M estimator:
 ![](./2023-01-16-survival_analysis.fig1.png)
 
 Because of **product limit estimator**, the K-M survival curve is step-like, in which x axis represents $t_i$ and y represents $S\hat(t_i)$.
+
+## example: make a survival curve in TCGA breast cancer `survfit`
+
+Here we use progression free interval (PFI) as outcome endpoint.
+
+```{r km_curve}
+library(survival)
+library(tidyverse)
+theme_set(theme_bw())
+
+# clinical data
+tcga_cdr <- openxlsx::read.xlsx("https://www.cell.com/cms/10.1016/j.cell.2018.02.052/attachment/bbf46a06-1fb0-417a-a259-fd47591180e4/mmc1.xlsx") |> 
+    as_tibble() |> 
+    janitor::clean_names() |> 
+    filter(type=="BRCA")
+
+fit.surv <- survfit(Surv(pfi_time, pfi) ~ 1, data = tcga_cdr) # be aware pfi must be numeric, otherwise it will trigger multi-state model
+
+broom::tidy(fit.surv)
+```
+
+It reports result like above Xu's manual calculation table. `estimate` represent the $S(t)$. Thus to manually plot K-M survival curve,
+
+```{r}
+broom::tidy(fit.surv) |> 
+    ggplot(aes(x = time, y = estimate)) +
+    geom_line(color = "red") +
+    geom_point(shape="|", size=2) +
+    geom_ribbon(aes(ymax = conf.high, ymin = conf.low), alpha=0.2, fill="red") + # add confident interval for estimated S(t)
+    labs(x = "progression free interval (days)", y = "Estimated progression free probability") +
+    ggtitle("K-M survival curve for TCGA breast cancer (BRCA)")
+```
+
+To stratify survival curve by pathologic stage (`ajcc_pathologic_tumor_stage`)
+
+```{r}
+fit.surv2 <- survfit(Surv(pfi_time, pfi) ~ ajcc_pathologic_tumor_stage, data = tcga_cdr)
+
+broom::tidy(fit.surv2) |> 
+     left_join(
+        broom::tidy(fit.surv2) |> 
+            group_by(strata) |> 
+            dplyr::slice(which.min(time)) |> 
+            select(n = n.risk, strata)
+    ) |> 
+    mutate(strata = str_replace(strata, ".*=", "")) |> 
+    filter(!grepl("\\[", strata)) |> 
+    mutate(strata = glue::glue("{strata} (n={n})")) |> 
+    ggplot(aes(x = time, y = estimate, group = strata)) +
+    geom_line(aes(color = strata)) +
+    geom_point(aes(color = strata), shape="|", size=2) +
+    labs(x = "progression free interval (days)", y = "Estimated progression free probability") +
+    ggtitle("K-M survival curve for TCGA breast cancer (BRCA)")
+```
+
+*Note: here for stage III, t0 is not start with day0 and 1 out of 2 risk samples with event, thus S(t) start with 0.5 instead of 1.*
+
+Beside manually plotting survival curve using ggplot, `autoplot` from R package `{ggfortify}` can automatically plot beautiful curves. Refer to [ggfortify autoplot tutorial](https://cran.r-project.org/web/packages/ggfortify/vignettes/plot_surv.html) to know more.
+
+In addition, R package [`{survminer}`](https://rpkgs.datanovia.com/survminer/) also provide functions for facilitating survival analysis and visualization (`ggsurvplot`). The advantage of use this package over `ggplot` or `autoplot` is that it can automatically add risk table under plot.
 
 # log-rank test
 
@@ -133,9 +197,9 @@ $$\chi^2 = \sum((O_{Ai} - E_{Ai})^2/E_{Ai}) + \sum((O_{Bi} - E_{Bi})^2/E_{Bi})$$
 
 ## Variations of log rank statistics
 
-As noted, there are several variations of the log rank statistic [^4]. Some statistical computing packages use the following test statistic for the log rank test to compare two independent groups:
+As noted, there are several variations of the log rank statistic [^5]. Some statistical computing packages use the following test statistic for the log rank test to compare two independent groups:
 
-[^4]: https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_survival/BS704_Survival5.html
+[^5]: https://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_survival/BS704_Survival5.html
 
 $$\chi^2 = (\sum O_{Ai} - \sum E_{Ai})^2 / \sum Var(E_{Ai})$$
 
@@ -151,54 +215,65 @@ where
 
 $$Var(E_{Ai}) = E_{Ai}*(n_{Ai} + n_{Bi} - d_{Ai} - d_{Bi})/ ((n_{Ai} + n_{Bi})*(n_{Bi}/(n_{Ai} + n_{Bi}-1))$$
 
-# Cox proportional hazard
+## example: `survdiff` to test TNBC and non-TNBC difference
 
-## hazard function
+The triple-negative breast cancer (TNBC) is one type of breast cancers without expression of estrogen receptor (ER), progesterone receptor (PR) or HER2 amplification. The Patients with TNBC are presented with worse overall prognoses and lack of effective targeted treatment options [^6]. Lehmann et al used a two-component Gaussian mixture model (R package `{optim}`) to estimate the posterior probability of negative expression status of ER, PR and HER2, and identified TNBC patients from TCGA gene expression data [^7]. Here we will combine above data.frame `tcga_cdr` with TNBC annotation from Lehmann et al 2016 [^8] and perform log.rank test (`survdiff`) to estimate whether TNBC patients have worse overall prognoses as stated.
 
--   **cumulative distribution function F(t)**
+[^6]: Kalecky, K., Modisette, R., Pena, S. et al. Integrative analysis of breast cancer profiles in TCGA by TNBC subgrouping reveals novel microRNA-specific clusters, including miR-17-92a, distinguishing basal-like 1 and basal-like 2 TNBC subtypes. BMC Cancer 20, 141 (2020). https://doi.org/10.1186/s12885-020-6600-6
 
--   **probability density function f(t)**
+[^7]: Lehmann BD, Jovanović B, Chen X, Estrada MV, Johnson KN, Shyr Y, et al. (2016) Refinement of Triple-Negative Breast Cancer Molecular Subtypes: Implications for Neoadjuvant Chemotherapy Selection. PLoS ONE 11(6): e0157368. https://doi.org/10.1371/journal.pone.0157368
 
--   **survival function S(t)**
+[^8]: Lehmann BD, Jovanović B, Chen X, Estrada MV, Johnson KN, Shyr Y, et al. (2016) Refinement of Triple-Negative Breast Cancer Molecular Subtypes: Implications for Neoadjuvant Chemotherapy Selection. PLoS ONE 11(6): e0157368. https://doi.org/10.1371/journal.pone.0157368
 
--   **hazard function h(t)**
+```{r}
+tnbc_anno <- openxlsx::read.xlsx("https://doi.org/10.1371/journal.pone.0157368.s008", sheet = "TCGA", startRow = 2, cols=1:44) |> 
+    as_tibble() |> 
+    janitor::clean_names()
 
--   **cumulative hazard H(t)**
+tcga_cdr <- tcga_cdr |> 
+    left_join(
+        tnbc_anno |> 
+            select(bcr_patient_barcode=barcode, tnbc) |> 
+            distinct()
+    )
 
-## proportional hazard
+fit.surv3 <- survdiff(Surv(pfi_time, pfi) ~ tnbc, data = tcga_cdr)
 
-## Cox proportional hazards model
+broom::tidy(fit.surv3) # 
+```
 
-**hazard ratio**
+`broom::tidy(fit.surv3)` reports chi-square like table with summary statistics of total sample (`N`), observed sample number with event (`obs`), expected sample number with event (`exp`) for each group.
 
-### stratify co-variate
+```{r}
+broom::tidy(fit.surv3)
+```
 
-## shrinkage on cox model
+`broom::tidy(fit.surv3)` reports summary statistics on chi-square (`estimate`), degree of freedom (`df`) and p-value (`p.value`)
 
-# important notes
+In our case, using alpha = 0.05 as cutoff, log.rank test indicates TNBC shows no significant difference from non-TNBC patients on probability of tumor progression.
 
-## S(t) vs. h(t)
+```{r}
+#| echo: false
+fit.surv4 <- survfit(Surv(pfi_time, pfi) ~ tnbc, data = tcga_cdr) 
 
--   S(t) survival curve is the cumulative probability. that *an event that not happen* (eg. death) at given time t.
+fit.surv4 |>
+    broom::tidy() |>
+    left_join(
+        broom::tidy(fit.surv4) |>
+            group_by(strata) |>
+            dplyr::slice(which.min(time)) |>
+            select(n = n.risk, strata)
+    ) |>
+    mutate(strata = str_replace(strata, ".*=", "")) |>
+    filter(!grepl("\\[", strata)) |>
+    mutate(strata = glue::glue("{strata} (n={n})")) |>
+    ggplot(aes(x = time, y = estimate, group = strata)) +
+    geom_line(aes(color = strata)) +
+    geom_point(aes(color = strata), shape = "|", size = 2) +
+    geom_ribbon(aes(ymax = conf.high, ymin = conf.low, fill=strata), alpha=0.2) +
+    labs(x = "progression free interval (days)", y = "Estimated progression free probability", color = "TNBC ?") +
+    ggtitle("K-M survival curve for TCGA breast cancer (BRCA)")
+```
 
--   h(t) proportional hazard is the chance/prob. that *an event that happen (death)* at given t.
 
-    -   the regression model (Cox model) y is h(t\|x) instead of S(t), so that bigger beta corresponding to the coefficient of higher risk of death (compared to baseline h(t\|x0)).
-
-    -   S(t) curve plotted by default does not incorporate other co-variates, thus the visualization is more corresponding to log-rank test.
-
-    -   S(t) curve can be stratified to represent co-variate corrected curve (p.484)
-
-## Misleading results in TCGA survival analysis.
-
--   Lead time bias: choose of different events, aka, earlier diagnosis can give false perception of longer survival, and diagnosis can be biased by clinical factors (e.g. fast-growing vs slow-growing tumors, onset of various symptoms, screening triggers)
-
--   censored data bias: violate independent assumption, aka, patients with incomplete follow-up to reach time to event can be biased (e.g. drop out of study due to rapidly deteriorating health).
-
--   proportional hazards assumption: Cox PH model assumes relative hazards are constant over time (e.g. violated if treatment has an initial beneficial effect but reduces survival at later time points)
-
--   Uninteresting correlations and data substructure [^5]: There are many uninteresting reasons that a random subset of genes can seem to have a significant effect on survival (e.g. correlation with a proliferation signature; association with age and age bias in hazard rates)
-
-[^5]: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5839591/
-
-Some of these possibilities can be explored with additional analyses. For example, once could test hypotheses about influence of age on expression or whether a specific gene's impact on survival is more reflective of that gene's membership in a gene set associated with some broader characteristic such as tumor purity, immune infiltration, proliferation signature, tumor molecular sub type, etc.
+Since the coxph test is a more complicated concept and requires additional prerequisite statistics terms, it will be discussed in detail at part 2. Stay tuned!
