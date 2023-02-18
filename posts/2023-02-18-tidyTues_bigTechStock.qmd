@@ -1,0 +1,681 @@
+---
+title: "Buy low sell high on big tech stock?"
+author: "Chun Su"
+date: "2023-02-18"
+categories: ["R", "tidyTuesday"]
+execute: 
+  eval: false
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: false
+      code-overflow: wrap
+image: "https://github.com/sckinta/learningwithsckinta_quartoblog/raw/main/_freeze/posts/2023-01-16-survival_analysis/figure-html/unnamed-chunk-5-1.png"
+---
+
+I am interested in [Big Tech Stock Prices](https://github.com/rfordatascience/tidytuesday/blob/master/data/2023/2023-02-07/readme.md) since I personally hold several big Tech stocks and experienced bloody plummeting in the last year. As an amateur investor, I have been always questioning my investing strategies, and wondering how different strategies result in the gains. Retrospect analysis is a good way to answer the question partially. 
+
+In this TidyTuesday exercise, I will use strategy of "buy low sell high" at 52 weeks cycle on these big tech stocks, and see which company fits this strategy the best.
+
+```{r}
+#| eval: true
+library(tidyverse)
+library(lubridate)
+theme_set(theme_bw())
+```
+
+
+```{r}
+big_tech_stock_prices <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_stock_prices.csv')
+big_tech_companies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-02-07/big_tech_companies.csv')
+```
+
+
+```{r}
+#| eval: true
+# library(quantmod)
+load("~/Documents/Untitled.rdata")
+stock_symbol <- 'AAPL'
+```
+
+# Example of "buy low sell high" strategy in APPL
+
+To compose functions, I will use Apple stock (APPL) as an example. Starting from the earliest available date, observe for one period (52 weeks), then start to invest afterwards.
+
+```{r}
+stock_symbol <- 'AAPL'
+
+period <- 52*7
+
+# first date ready to invest
+start_date <- big_tech_stock_prices |> 
+    filter(stock_symbol==!!stock_symbol) |> 
+    slice(which.min(date)) |> 
+    mutate(date = as.character(date + period)) |> 
+    pull(date) |> 
+    as.Date() # "2011-01-03"
+
+# data.frame ready to invest
+df <- big_tech_stock_prices |> 
+    filter(stock_symbol==!!stock_symbol, date >= start_date)
+```
+
+
+```{r}
+#| eval: true
+#| echo: false
+# plot whole time price trends
+big_tech_stock_prices |> 
+    filter(stock_symbol==!!stock_symbol) |> 
+    ggplot(aes(x = date, y = low)) +
+    geom_line() +
+    geom_vline(aes(xintercept = start_date), color = "red") +
+    ggtitle(glue::glue("{stock_symbol} stock price trend since 2010"))
+```
+
+
+## step 1: determine high and low point within period sliding window
+
+First step is to find 52 week low and high for each date, and determine whether a given date is 52 week low/high or not.
+
+```{r func_determine_period_low_high}
+determine_period_low_high <- function(df, period=354){
+    
+    stock_symbol <- df |>
+        distinct(stock_symbol) |>
+        pull(stock_symbol)
+    
+    wk52_low_high <- map_dfr(
+        df$date,
+        ~big_tech_stock_prices |> 
+            filter(stock_symbol==!!stock_symbol, date <= .x, date > .x - period) |> 
+            summarise(
+                low_wk52 = min(low),
+                high_wk52 = max(high)
+            ) |> 
+            mutate(date=.x)
+    )
+    
+    df <- left_join(df, wk52_low_high) |> 
+        mutate(
+            is_wk52_low = ifelse(low==low_wk52, T, F),
+            is_wk52_high = ifelse(high==high_wk52, T, F)
+        )
+    df
+}
+```
+
+```{r run_determine_period_low_high}
+df <- determine_period_low_high(df)
+```
+
+
+```{r plot_determine_period_low_high}
+#| eval: true
+#| echo: false
+
+# plot whole time price trends with wk52_high (high) and wk52_low (red) point
+big_tech_stock_prices |> 
+    filter(stock_symbol==!!stock_symbol) |> 
+    ggplot(aes(x = date, y = low)) +
+    geom_line() +
+    geom_vline(aes(xintercept = start_date), color = "red") +
+    geom_point(
+        data = df |> 
+            filter(is_wk52_low),
+        aes(color = is_wk52_low), shape = 3, color = "red") +
+    geom_point(
+        data = df |> 
+            filter(is_wk52_high),
+        aes(color = is_wk52_high), shape = 3, color = "blue")
+```
+
+
+## step 2: transaction date and price if have unlimited money
+
+Even there are so many high and low points, since we sell everything at each transaction cycle, thus we can use first high point right after low points (buy points) to sell. If we have multiple low points in row, we will keep buying until we run out money.
+
+To simplify the problem, we first assume we have unlimited cash, and determine buy and sell points from the high and low points.
+
+```{r func_determine_buy_sell}
+determine_buy_sell_unlimited <- function(df){
+    # shorten df to have only possible low/high point and start with a wk52 low point
+    df2 <- df |>
+        filter(is_wk52_low | is_wk52_high) |>
+        filter(cumsum(is_wk52_low) > 0)
+    
+    # create empty sell_df
+    sell_df <- NULL
+    
+    # loop through df2 get all possible sell_df (since buy at all low points when with unlimited cash) - the first high after lows
+    while(nrow(df2) > 0) {
+        sell_df <- bind_rows(
+            sell_df,
+            df2 |>
+                filter(cumsum(is_wk52_high) == 1) |> # the first high after lows
+                select(stock_symbol, date, price = high)
+        )
+        
+        df2 <- df2 |>
+            filter(date > max(sell_df$date)) |>
+            filter(cumsum(is_wk52_low) > 0) # shorten df2 to have only possible low/high point and start with next wk52 low point
+        
+        if (all(df2$is_wk52_low)) {
+            break
+        }
+    }
+    
+    # create transaction_df by combining sell_df with buy_df
+    transaction_df <- df |>
+        filter(is_wk52_low) |>
+        select(stock_symbol, date, price = low) |>
+        mutate(transaction = "buy") |>
+        bind_rows(sell_df |>
+                      mutate(transaction = "sell")) |>
+        arrange(date)
+    
+    # adding transaction cycle (using sell as end of one cycle)
+    transaction_df <- transaction_df |>
+        left_join(transaction_df |>
+                      filter(transaction == "sell") |>
+                      mutate(cycle = row_number())) |>
+        fill(cycle, .direction = "up") |>
+        group_by(cycle) |>
+        mutate(cycle = cur_group_id()) |>
+        ungroup()
+    
+    transaction_df
+}
+```
+
+
+```{r run_determine_buy_sell}
+transaction_df <- determine_buy_sell_unlimited(df)
+```
+
+
+
+```{r plot_determine_buy_sell}
+#| eval: true
+#| echo: false
+# plot whole time price trends with transaction point
+big_tech_stock_prices |> 
+    filter(stock_symbol==!!stock_symbol) |> 
+    ggplot(aes(x = date)) +
+    geom_line(aes(y = low), color = "red", alpha = 0.2) +
+    geom_line(aes(y = high), color = "blue", alpha = 0.2) +
+    geom_vline(aes(xintercept = start_date), color = "orange") +
+    geom_point(
+        data = transaction_df,
+        aes(y = price, color = transaction), shape = 3) +
+    ggtitle(glue::glue("{stock_symbol} buy/sell opportunities"))
+
+```
+
+## step 3: determine final sell/buy points and transaction details
+
+The investment strategy ("buy low sell high") have 4 options based on the different assumptions:
+
+1. assuming you have unlimited of money, from the time ready to invest, always buy same number of stocks (`num_per_buy`) at 52 week low, and sell everything hold at 52 week high
+
+2. assuming you have unlimited of money and you can buy stock bits (but have to sell as whole), from the time ready to invest, always spent same amount of cash (`cash_per_buy`) to buy at 52 week low, and sell everything hold at 52 week high.
+
+3. assuming you have a fixed amount of money (`total_cash`), from the time ready to invest, always buy same number of stocks (`num_per_buy`) at 52 week low, and sell everything hold at 52 week high.
+
+4. assuming you have a fixed amount of money (`total_cash`) and you can buy stock bits (but have to sell as whole), from the time ready to invest, always spent same amount of cash (`cash_per_buy`) to buy at 52 week low, and sell everything hold at 52 week high.
+
+The transaction details include 1) how many stocks to buy/sell and 2) how much cash to spend/earn at each transaction. Depending on the invest options mentioned above, we create transaction detail for each option.
+
+*Note:*
+
+1. To simplify the problem, we always buy same number of stocks for option 3. If there is not enough, drop the whole buy transaction instead of buying smaller number of stocks.
+
+2. Although stocks can be bought in bits but must be sold as whole.
+
+```{r func_buy_low_sell_high}
+buy_low_sell_high <- function(transaction_df, cash_limit=Inf, num_per_buy, cash_per_buy=NULL){
+    
+    if(is.infinite(cash_limit)){
+        # option 1: unlimited cash, buy whole stock with fixed number
+        if(!is.null(num_per_buy)){
+            buy_df <- transaction_df |>
+                filter(transaction == "buy") |>
+                mutate(stock_num = num_per_buy) |>
+                mutate(stock_cash = -stock_num * price)
+        # option 2: unlimited cash, buy bit stock with fixed cash
+        }else if(!is.null(cash_per_buy)){
+            buy_df <- transaction_df |>
+                filter(transaction == "buy") |>
+                mutate(stock_cash = -cash_per_buy) |>
+                mutate(stock_num = -stock_cash / price)
+        }
+        
+        # sell_df will be same for option 1 and option 2: at each cycle sell most whole stocks
+        sell_df <- transaction_df |>
+            filter(transaction == "sell") |>
+            left_join(buy_df |>
+                          group_by(cycle) |>
+                          summarise(stock_num = -floor(sum(stock_num)))) |>  # can only sell whole stocks)
+            mutate(stock_cash = -price * stock_num)
+        
+        transaction_df2 <- bind_rows(buy_df,
+                                     sell_df) |>
+            arrange(date) |>
+            mutate(
+                stock_num_cumsum = cumsum(stock_num),
+                stock_cash_cumsum = cumsum(stock_cash)
+            )
+    }else{
+        
+        transaction_df2 <- NULL
+        total_cash <- cash_limit
+        # for each transaction cycle, has to cut off some buys to make sure stock_cash_cumsum > 0
+        for (i in unique(transaction_df$cycle)) {
+            # option 3: limited cash, buy whole stock with fixed number
+            if(!is.null(num_per_buy)){
+                buy_df <- transaction_df |>
+                    filter(transaction == "buy", cycle == i) |>
+                    mutate(stock_num = num_per_buy) |>
+                    mutate(stock_cash = -stock_num * price) |>
+                    mutate(
+                        stock_num_cumsum = cumsum(stock_num),
+                        stock_cash_cumsum = cumsum(stock_cash)
+                    ) |>
+                    mutate(stock_cash_cumsum = total_cash + stock_cash_cumsum) |>
+                    filter(cumsum(stock_cash_cumsum >= 0) == row_number())
+                
+            # option 4: unlimited cash, buy bit stock with fixed cash
+            }else if(!is.null(cash_per_buy)){
+                buy_df <- transaction_df |>
+                    filter(transaction == "buy", cycle == i) |>
+                    mutate(stock_cash = -cash_per_buy) |>
+                    mutate(stock_num = -stock_cash / price) |>
+                    mutate(
+                        stock_num_cumsum = cumsum(stock_num),
+                        stock_cash_cumsum = cumsum(stock_cash)
+                    ) |>
+                    mutate(stock_cash_cumsum = total_cash + stock_cash_cumsum) |>
+                    filter(cumsum(stock_cash_cumsum >= 0) == row_number())
+            }
+            
+            
+            if (nrow(buy_df) == 0) {
+                break
+            } else{
+                sell_df <- transaction_df |>
+                    filter(transaction == "sell", cycle == i) |>
+                    left_join(buy_df |>
+                                  group_by(cycle) |>
+                                  summarise(stock_num = -floor(sum(stock_num)))) |>
+                    mutate(stock_cash = -price * stock_num)
+                
+                transaction_df2 <- bind_rows(
+                    transaction_df2,
+                    bind_rows(buy_df,
+                              sell_df) |>
+                        arrange(date) |>
+                        mutate(
+                            stock_num_cumsum = cumsum(stock_num),
+                            stock_cash_cumsum = total_cash + cumsum(stock_cash)
+                        )
+                )
+                
+                # update total cash after one cycle
+                total_cash <-
+                    transaction_df2 |> slice(n()) |> pull(stock_cash_cumsum)
+            }
+        }
+    }
+    transaction_df2
+}
+```
+
+
+```{r func_plot_transaction_details}
+#| eval: true
+#| echo: false
+
+plot_transaction_details <- function(transaction_df1, title) {
+    stock_symbol <- unique(transaction_df1$stock_symbol)
+    p1 <- big_tech_stock_prices |> 
+        filter(stock_symbol==!!stock_symbol) |> 
+    ggplot(aes(x = date)) +
+    geom_line(aes(y = low), color = "red", alpha=0.2) +
+    geom_line(aes(y = high), color = "blue", alpha=0.2) +
+    geom_vline(aes(xintercept = start_date), color = "red") +
+    geom_point(
+        data = transaction_df1,
+        aes(color = transaction, y=price), shape = 1) +
+        ggtitle("Transaction history") +
+        labs(y = 'Stock price') +
+        theme(plot.title = element_text(face="bold",size=10))
+    
+    p2 <- big_tech_stock_prices |> 
+        filter(stock_symbol==!!stock_symbol) |> 
+        select(date) |> 
+        left_join(
+            transaction_df1
+        ) |> 
+        ggplot(aes(x=date, y = stock_num_cumsum)) +
+        geom_point(aes(color = transaction), shape = 1) +
+        geom_line(data = transaction_df1, linetype=3) +
+        scale_colour_discrete(na.translate = F) +
+        ggtitle("Stock number on holding") +
+        labs(y = "Cumulative stock number")+
+        theme(plot.title = element_text(face="bold",size=10))
+    
+    p3 <- big_tech_stock_prices |> 
+        filter(stock_symbol==!!stock_symbol) |> 
+        select(date) |> 
+        left_join(
+            transaction_df1
+        ) |> 
+        mutate(stock_cash_cumsum=ifelse(stock_cash_cumsum > 0, 0, stock_cash_cumsum)) |> 
+        ggplot(aes(x=date, y = -stock_cash_cumsum)) +
+        geom_point(aes(color = transaction), shape = 1) +
+        geom_line(data = transaction_df1 |> 
+    mutate(invested=ifelse(stock_cash_cumsum > 0, 0, -stock_cash_cumsum)) |> 
+    mutate(gained=ifelse(stock_cash_cumsum < 0, 0, stock_cash_cumsum)) |> 
+    select(date, invested, gained) |> 
+    gather(-date, key="cash_type", value = "cash"), aes(y=cash, linetype=cash_type)) +
+        geom_point(data = transaction_df1 |> 
+    mutate(gained=ifelse(stock_cash_cumsum < 0, 0, stock_cash_cumsum)), aes(y=gained, color = transaction), shape=1) + 
+        scale_colour_discrete(na.translate = F) +
+        ggtitle("Investment and gain in total") +
+        labs(y = "Invested or gained cash")+
+        theme(plot.title = element_text(face="bold",size=10))
+    
+    
+    tmp <- transaction_df1 |> 
+        filter(transaction=="buy") |> 
+        select(buy_date=date, cycle, buy_stock=stock_num) |> 
+        left_join(
+            transaction_df1 |> 
+                filter(transaction=="sell") |> 
+                select(sell_date=date, cycle, sell_stock=stock_num_cumsum)
+        ) |> 
+        filter(!is.na(sell_date)) |> 
+        group_by(cycle) |> 
+        mutate(stock_num = ifelse(
+            row_number()==n(), buy_stock-sell_stock, buy_stock
+        )) |> 
+        ungroup() |> 
+        mutate(stock_age = as.integer(sell_date-buy_date))
+ 
+    p4 <- tmp |> 
+        left_join(
+            tmp |> 
+                group_by(cycle) |> 
+                summarise(
+                    cycle_dates = glue::glue("{as.character(min(buy_date))}~\n {as.character(max(sell_date))}")
+                ) |> 
+                ungroup()
+        ) |> 
+        ggplot(aes(y = cycle_dates)) +
+        geom_point(aes(x=stock_age, size=stock_num), alpha=0.2, color="red", shape=1) +
+        geom_point(data = tmp |> 
+        group_by(cycle) |> 
+        summarise(stock_cycle_age = sum(stock_age*stock_num)/sum(stock_num),
+                  cycle_dates = glue::glue("{as.character(min(buy_date))}~\n {as.character(max(sell_date))}")), aes(x = stock_cycle_age), shape=3, color="red") +
+        ggrepel::geom_text_repel(data = tmp |> 
+        group_by(cycle) |> 
+        summarise(stock_cycle_age = sum(stock_age*stock_num)/sum(stock_num),
+                  cycle_dates = glue::glue("{as.character(min(buy_date))}~\n {as.character(max(sell_date))}")), aes(x = stock_cycle_age, label = as.integer(stock_cycle_age)), color="red") +
+        ggtitle("Stock investment length") +
+        labs(x = "stock age", y = "")+
+        theme(plot.title = element_text(face="bold",size=10))
+   
+    p <- cowplot::plot_grid(p1, p2, p3, p4, nrow = 2)
+    
+    cowplot::plot_grid(
+    ggplot() + ggtitle('option 2: unlimited cash, buy bit stock with fixed cash') + theme(plot.title = element_text(face="bold",size=12)),
+    p,
+    ncol = 1,
+    rel_heights = c(0.06, 1)
+)
+    
+}
+```
+
+To make options comparable across, we set `cash_limit` as 1000, `num_per_buy` as 10 and `cash_per_buy` as 1000, and being consistent across all the options and stocks.
+
+
+```{r constant}
+cash_limit <- 1000
+num_per_buy <- 10
+cash_per_buy <- 1000
+```
+
+### option 1: unlimited cash, buy whole stock with fixed number
+
+```{r run_option1}
+transaction_df1 <- buy_low_sell_high(transaction_df, cash_limit=Inf, num_per_buy=num_per_buy, cash_per_buy=NULL)
+```
+
+
+```{r plot_option1}
+#| eval: true
+#| echo: false
+plot_transaction_details(transaction_df1,
+                         title = 'option 1: unlimited cash, buy whole stock with fixed number')
+```
+
+### option 2: unlimited cash, buy bit stock with fixed cash
+
+```{r run_option2}
+transaction_df2 <- buy_low_sell_high(transaction_df, cash_limit=Inf, num_per_buy=NULL, cash_per_buy=cash_per_buy)
+```
+
+```{r plot_option2}
+#| eval: true
+#| echo: false
+
+plot_transaction_details(transaction_df2,
+                         title = 'option 2: unlimited cash, buy bit stock with fixed cash')
+```
+
+### option 3: limited cash, buy whole stock with fixed number
+
+```{r run_option3}
+transaction_df3 <- buy_low_sell_high(transaction_df, cash_limit=cash_limit, num_per_buy=num_per_buy, cash_per_buy=NULL)
+```
+
+
+```{r plot_option3}
+#| eval: true
+#| echo: false
+plot_transaction_details(transaction_df3,
+                         title = 'option 3: limited cash, buy whole stock with fixed number')
+```
+
+### option 4: unlimited cash, buy bit stock with fixed cash
+
+```{r run_option4}
+transaction_df4 <- buy_low_sell_high(transaction_df, cash_limit=cash_limit, num_per_buy=NULL, cash_per_buy=cash_per_buy)
+```
+
+
+```{r plot_option4}
+#| eval: true
+#| echo: false
+
+plot_transaction_details(transaction_df4,
+                         title = 'option 4: unlimited cash, buy bit stock with fixed cash')
+```
+
+
+```{r}
+#| echo: false
+#| eval: false
+
+save(list=ls(), file="~/Documents/Untitled.rdata")
+```
+
+
+# Which option is better?
+
+To determine which option is better, we have to evaluate investment outcome by gain-risk ratio. The simple gain-risk ratio can be estimated by the earned cashed divided by required input.
+
+```{r}
+#| eval: true
+eval_df <- left_join(
+    # stock_cash_cumsum reported for all options
+    list(transaction_df1,
+         transaction_df2,
+         transaction_df3,
+         transaction_df4) |>
+        map_dfr(~ .x |>
+                    filter(transaction == "sell") |>
+                    slice(n()) |>
+                    select(stock_cash_cumsum)) |>
+        mutate(option = row_number()) |>
+        mutate(option = glue::glue("option_{option}")),
+    
+    # required_input money
+    list(transaction_df1,
+         transaction_df2) |>
+        map_dfr( ~ .x |>
+                     slice(1:max(which(stock_num < 0))) |>
+                     filter(stock_cash_cumsum < 0) |> 
+                     summarise(required_input = max(abs(stock_cash_cumsum)))) |> 
+    mutate(option = row_number()) |> 
+    mutate(option = glue::glue("option_{option}"))
+) |> 
+    mutate(money_gain = ifelse(is.na(required_input), stock_cash_cumsum-cash_limit, stock_cash_cumsum)) |> # the last stock_cash_cumsum include the input cash in option 3/4
+    mutate(required_input=ifelse(is.na(required_input), cash_limit, required_input)) |> 
+    select(-stock_cash_cumsum)
+
+eval_df |> 
+    mutate(gain_risk_ratio = money_gain/required_input) |> 
+    knitr::kable(caption = "gain-risk ratio for buy-low-sell-high options")
+```
+
+
+For APPL, it seems buy same whole stock each buy is better strategy than spending fixed money at 52 week low. If you cannot get more than \$1000, option 3 -- with limited cash (only $1000), buy whole stock with fixed number --is the best strategy. It spend least amount of input money (low risk) to get reasonable gain.
+
+# Which big tech gave best gain using buy-low-sell-high option 3?
+
+Above we use Apple stock (APPL) as an example, from the earliest available date, observe for one period (52 weeks), then ready to invest.
+
+```{r}
+cash_limit <- 1000
+num_per_buy <- 10
+cash_per_buy <- 1000
+period <- 364
+
+df_all_tech <- big_tech_stock_prices |> 
+            group_by(stock_symbol) |> 
+            slice(which.min(date)) |> 
+            ungroup() |> 
+            select(stock_symbol, start_date=date) |> 
+            left_join(
+                big_tech_stock_prices
+            ) |> 
+            filter(date >= start_date + period) |> 
+            select(-start_date)
+
+df_all_tech <- split(df_all_tech, df_all_tech$stock_symbol)
+
+
+transaction_df_all_tech <-
+    map_dfr(names(df_all_tech),
+            function(tech_symbol) {
+                cat(paste("START", tech_symbol, "\n"))
+                df <- df_all_tech[[tech_symbol]]
+                cat("run determine_period_low_high...\n")
+                step1_df <- determine_period_low_high(df)
+                cat("run determine_buy_sell_unlimited...\n")
+                step2_transaction_df <-
+                    determine_buy_sell_unlimited(step1_df)
+                cat("run buy_low_sell_high...")
+                buy_low_sell_high(
+                    step2_transaction_df,
+                    cash_limit = cash_limit,
+                    num_per_buy = num_per_buy,
+                    cash_per_buy = NULL
+                )
+            })
+
+
+```
+
+```{r}
+#| eval: false
+#| echo: false
+save(list = ls(), file="~/Documents/Untitled.rdata")
+```
+
+
+```{r}
+transaction_df_all_tech |> 
+    filter(transaction=="sell") |> 
+    group_by(stock_symbol) |> 
+    slice(n()) |> 
+    select(stock_symbol, stock_cash_cumsum) |> 
+    mutate(money_gain = stock_cash_cumsum-1000) |> 
+    mutate(required_input = 1000) |> 
+    mutate(gain_risk_ratio = money_gain/required_input) |> 
+    knitr::kable(caption = "")
+```
+
+|stock_symbol | stock_cash_cumsum| money_gain| required_input| gain_risk_ratio|
+|:------------|-----------------:|----------:|--------------:|---------------:|
+|AAPL         |          2124.204|  1124.2036|           1000|       1.1242036|
+|ADBE         |          1709.500|   709.5001|           1000|       0.7095001|
+|AMZN         |          1382.835|   382.8350|           1000|       0.3828350|
+|CRM          |          2639.075|  1639.0750|           1000|       1.6390750|
+|CSCO         |          1373.400|   373.4001|           1000|       0.3734001|
+|GOOGL        |          1896.720|   896.7201|           1000|       0.8967201|
+|INTC         |          1792.600|   792.6001|           1000|       0.7926000|
+|MSFT         |          1143.500|   143.5000|           1000|       0.1435000|
+|NFLX         |          1190.714|   190.7142|           1000|       0.1907142|
+|NVDA         |          1241.575|   241.5750|           1000|       0.2415750|
+|ORCL         |          1566.400|   566.4000|           1000|       0.5664000|
+|TSLA         |          2201.067|  1201.0667|           1000|       1.2010667|
+
+*Note: The reason "META" and "IBM" failed to show because they were too expensive to buy at their first 52 weeks low (10 stocks were already beyond my cash limit)!!!*
+
+
+# Final thoughts
+
+Due to the time limit, I will end this TidyTuesday exercise here. However, there are till many interesting ideas to explore.
+
+1. If we adjust parameters in the "buy-low-sell-high" strategy, eg: `start_date`, `period`, `cash_limit`, `num_per_buy` and `cash_per_buy`, will it make gain-risk-ratio change dramatically within the same stock? Just like I tune hyper-parameters in ML exercise!
+
+2. The current model did not take taxes (which is a big expense in trading) into consideration. How long to hold a stock determines tax brackets. It will improve the estimate accuracy of true gain.
+
+3. All the price of big tech stocks were slowly climbing up at early time. Will my functions break if the stock kept dropping?
+
+4. All the price of big tech stocks are quite stable. Will a more fluctuated stock make difference on the "buy-low-sell-high" strategy?
+
+5. I did not use this strategy in my personal trading. Instead, I just invest fixed amount of cash into index fund recurrently with a certain frequency. How about writing the "recurrent invest" strategy and comparing this to "buy-low-sell-high" strategy?
+
+At R-ladies Philly event, Alice mentioned a R package `{quantmod}` to download daily price for any stocks and perform quantitative financial modeling. I may want to try it out sometime.
+
+Besides the stock context itself, I have a few final take-away from this exercise:
+
+1. When question is complicated, I should modularize the question and solve the big question by accomplishing little steps first.
+
+  - Modular programming is one-step towards object-oriented programming, although there are difference between modular programming and object-oriented programming [^1].
+  
+  - I had to spend an extra night to clean up the code to make everything function-based (object-oriented?). However, just like writing paper, spitting it out is always the hardest but also the very first step. Do not worry about the coding style at beginning, just spit it out! 
+  
+2. As usually, I picked up several tricks to "filter" the rows. 
+
+  - using `filter(cumsum(<boolean>) ...)`
+  
+    - `filter(cumsum(is_wk52_low) > 0)`: remove the first x rows where `is_wk52_low` is `FALSE` (but not removing anything after is_wk52_low being `TRUE` once)
+    
+    - `filter(cumsum(is_wk52_high) == 1)`: remove everything after `is_wk52_high` is `TRUE` for the first time 
+    
+    - `filter(cumsum(stock_cash_cumsum >= 0) == row_number())`: remove everything after `stock_cash_cumsum >= 0` is `FALSE` for the first time (note: different from simple `filter(stock_cash_cumsum >=0)` by even removing `stock_cash_cumsum >=0` cases after first `FALSE` case)
+    
+  - using `slice()`
+  
+    - `slice(n())`: just keep last row
+    
+    - `slice(1:max(which(stock_num < 0)))`: keep first row until the last row where `stock_num < 0`
+
+
+[^1]: [What is the big difference between modular and object oriented programming?](https://stackoverflow.com/questions/18034683/what-is-the-big-difference-between-modular-and-object-oriented-programming#:~:text=Modular%20programming%20(also%20called%20%22top,aspect%20of%20the%20desired%20functionality.)

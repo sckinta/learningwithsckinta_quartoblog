@@ -276,5 +276,4 @@ fit.surv4 |>
     ggtitle("K-M survival curve for TCGA breast cancer (BRCA)")
 ```
 
-
 Since the coxph test is a more complicated concept and requires additional prerequisite statistics terms, it will be discussed in detail at part 2. Stay tuned!
