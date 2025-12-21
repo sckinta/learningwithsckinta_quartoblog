@@ -10,7 +10,7 @@ execute:
 format:
   html:
       code-fold: true
-      code-overflow: wrap
+      code-overflow: 'wrap'
 image: "https://github.com/sckinta/learningwithsckinta_quartoblog/raw/main/_freeze/posts/2023-02-18-tidyTues_bigTechStock/figure-html/unnamed-chunk-10-1.png"
 ---
 
@@ -36,7 +36,7 @@ big_tech_companies <- readr::read_csv('https://raw.githubusercontent.com/rfordat
 #| eval: true
 #| echo: false
 # library(quantmod)
-load("~/Documents/Untitled.rdata")
+load(here::here("rdata/2023-02-18-tidyTues_bigTechStock.rdata"))
 stock_symbol <- 'AAPL'
 ```
 
@@ -500,7 +500,7 @@ plot_transaction_details(transaction_df4,
 #| echo: false
 #| eval: false
 
-save(list=ls(), file="~/Documents/Untitled.rdata")
+save(list=ls(), file=here::here("rdata/2023-02-18-tidyTues_bigTechStock.rdata"))
 ```
 
 # Which option is better?
@@ -596,7 +596,7 @@ transaction_df_all_tech <-
 ```{r}
 #| eval: false
 #| echo: false
-save(list = ls(), file="~/Documents/Untitled.rdata")
+save(list = ls(), file=here::here("rdata/2023-02-18-tidyTues_bigTechStock.rdata"))
 ```
 
 Thanks to [Tanya Shapiro](https://github.com/tashapiro), I will add the company logos curated by her to the plot [^3].
