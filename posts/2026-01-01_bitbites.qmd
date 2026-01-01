@@ -1,0 +1,48 @@
+---
+title: "bitBites (2026-01-01): LLM shiny, Advert of Agent, FOCUS, Scalable Perturb-seq"
+author: "Chun Su"
+date: "2026-01-01"
+categories: ["bitBite"]
+execute: 
+  eval: false
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: true
+      code-overflow: 'wrap'
+image: ""
+---
+
+Inspired by [Stephen Turner](https://blog.stephenturner.us/)[^1] 's weekly recap series, I’m starting a series called bitBites to regularly review what I read and learn. This is part of my New Year’s resolution. In an era of information overload, I benefit greatly from curators like Stephen who consistently surface content aligned with my interests. At the same time, I’ve realized that because everyone’s interests and perspectives differ, it’s important to create a personal “recap” as an output of my own digestion. It allows me to highlight ideas that resonate most with me and to internalize them more deeply.
+
+Even in the AI era, where curation is easier than ever, the act of digestion remains uniquely human. Knowledge written on paper is not the same as knowledge embedded in the brain. Fifteen years after graduating from college, I can clearly feel my memory has declined, not necessarily all because of age, but because modern practice rarely requires memorization. Even in graduate school, memorization was no longer the key determinant of success. As a result, I’ve become heavily dependent on my “second brain” (Notion in particular) to retrieve information I’ve encountered before. We’ve long known that the best way to learn is to produce. Writing, teaching, and summarizing force us to transform passive input into active understanding. That’s why I’m starting the bitBites series as a record of my own learning journey to turn passive consumption into active creation.
+
+Enough rambling, let’s get to business.
+
+## R, data science and AI
+
+- The shiny side of LLM blog series: this is probably my biggest learning activity during the holiday. The blog includes three parts: [What LLMs Actually Do (and What They Don’t)](https://shiny.posit.co/blog/posts/shiny-side-of-llms-part-1/),  [Talking to LLMs: From Prompt to Response](https://shiny.posit.co/blog/posts/shiny-side-of-llms-part-2/), and [Build Your First LLM App with Shiny for Python or R](https://shiny.posit.co/blog/posts/shiny-side-of-llms-part-3/). Each of them is a delight reading. It covers from basics of LLM, to tools (ellmer for R and chatlas for Python) that talks to LLM, and finally building a shiny app that utilizes the LLM to retrieve, summarize and evaluate content. I also learned a new programming concept called "asynchronous operation", and expanded my reading to package documention of [`{promises}`](https://rstudio.github.io/promises/index.html), [non-blocking operations](https://shiny.posit.co/r/articles/improve/nonblocking/) and [extended task](https://rstudio.github.io/shiny/reference/ExtendedTask.html).
+
+- [R code optimization](https://www.blasbenito.com/2025/12/20/r-code-optimization-hardware-performance/): this is also a blog series, summarizing many tricks that I learned along the way while using R (ie, vectorization, on-disk memory, parallelization). It also covers the part that, as a pure R programmer myself, never touched. It painted a complete picture of program optimization not just limited to R.
+
+- [Introducing docorator to the pharmaverse](https://pharmaverse.github.io/blog/posts/2025-12-19_introducing/introducing_docorator.html): an extension for `{gt}` that “decorates” them with custom headers, footers, etc. in production-ready outputs.
+
+- [UMAP in R and Python](https://amjdomingues.com/posts/2025-11-25-ump-r-python/) is an interesting read that surprised me by showing how loaded in-memory objects can influence UMAP results in R. Although the author does not fully get to the root cause in my opinion, the post serves as a thundering warning for me (a computational biologist who frequently represents data using UMAP) about reproducibility issues that go beyond seed randomness and parameter choices.
+
+- [Advent of Agent 2025](https://adventofagents.com/): It is a 25 days tutorial created by google that covers the tutorials on how to build a AI agent from basics to application. Even though I have not gone through the whole course series, it has been my next to-do list in the rest of holiday. 
+
+- [FOCUS: an AI-assisted reading workflow for information overload](https://www.nature.com/articles/s41587-025-02947-8.epdf?sharing_token=s7NOOuQl95Mfd3KOpT_24NRgN0jAjWel9jnR3ZoTv0MUqpH1c-k2Kv9SLI97xqAHN68YALCE1kO34-iWYZZbvrBJR2oz7OY88vjIkU1QfREI--V-fvGXjVCkjyhxVlXgeHz28It4s4DoDx29nD64uHoLB8WfevF-CiWxOAOQCYI%3D): highlighted by Stephen in his weekly recap, was a timely and reassuring read. The short article outlining the Find–Organize–Condense–Understand–Synthesize workflow and I especially appreciated the concrete prompts that can be directly incorporated into a custom ChatGPT workflow. The article resonated strongly with my long-standing anxiety about information overload, particularly in research, where I constantly feel behind. I’ll admit that I’m a slow reader and a working mother, and I simply don’t have the capacity to keep up with hundreds of social media threads, RSS feeds, and subscribed articles—unlike the impressive system Stephen recently described in [Staying Current in Data Science and Computational Biology: 2026 Edition](https://blog.stephenturner.us/p/staying-current-in-data-science-and-computational-biology-2026?utm_source=post-email-title&publication_id=161890&post_id=171791330&utm_campaign=email-post-title&isFreemail=true&token=eyJ1c2VyX2lkIjozMDEyMzI2NzEsInBvc3RfaWQiOjE3MTc5MTMzMCwiaWF0IjoxNzY3MjUyMzg2LCJleHAiOjE3Njk4NDQzODYsImlzcyI6InB1Yi0xNjE4OTAiLCJzdWIiOiJwb3N0LXJlYWN0aW9uIn0.PZge8aMRbYS_N_IFD5lB1vJbXnvbMDkyLaDYyCBlTRg&r=4zcgm7&triedRedirect=true&utm_medium=email). While this workflow won’t magically solve the problem, it offers a practical and compassionate structure that helps reduce some of the anxiety associated with staying current at work and makes valuable to me.
+
+## biology and bioinformatics
+
+- [Linking regulatory variants to target genes by integrating single-cell multiome methods and genomic distance (Nature Genetics, 2025)](https://www.nature.com/articles/s41588-025-02220-3): the authors introduced an modeling framework called pgBoost that will integrate multiome data with eQTL in a non-linear way to produce a score for the linkage between SNP and gene. 
+
+- [Scalable genetic screening for regulatory circuits using compressed Perturb-seq (Nature Biotechnology 2023)](https://www.nature.com/articles/s41587-023-01964-9): compressed design in composite sample together with sparse promoting inference algorithm enables cost and efficiency enhanced approach to use Perturb-seq. This is under assumpation of "biological sparsity and modality in cell circut", thus applies best to illustrate effects of GWAS SNPs. 
+
+- [Systematic reconstruction of molecular pathway signatures using scalable single-cell perturbation screens (Nature Cell Biology 2025)](https://www.nature.com/articles/s41556-025-01622-z): a nice Perturb-seq dataset that can be used for atlas building and in silico perturbation training.
+
+- [SMMILe enables accurate spatial quantification in digital pathology using multiple-instance learning](https://www.nature.com/articles/s43018-025-01060-8): it is a new spatial and pathology image labeling method through weakly supervised multi-instance learning (MIL). Enchoring the single cell sample-specific analysis method ([multiMIL](https://github.com/theislab/multimil)) in which treating cell as "instance" and sample as "bag", SMMILe treated pixel patch as instance to classify the sample. 
+
+
+[^1]: Steve served on my thesis committee for the defense, and he also introduced me to the `{tidyverse}` through a workshop at UVa. Over the years, I’ve been deeply inspired by his blog posts and social media presence. Each time he made a career transition from academia to industry and then back to academia, I found myself re-examining my own career path. His moves consistently reminded me of how important it is to stay current, both in knowledge and skills, especially in today’s insecure job market and fast-paced field. I feel fortunate to have had such a mentor in my career and would like to dedicate this first bitBite blog post to him.
