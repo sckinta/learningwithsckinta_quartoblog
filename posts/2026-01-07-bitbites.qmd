@@ -11,16 +11,16 @@ format:
   html:
       code-fold: true
       code-overflow: 'wrap'
-image: "/assets/bitbites_thumb.png"
+image: "/assets/bitbites_thumb2.png"
 ---
 
 ## R, data science and LLM
 
 - [R Package Development Advent Calendar 2025](https://drmowinckels.io/blog/2025/rpackage-dev-calendar/) by Athanasia Mo Mowinckel offers a comprehensive journey through R package development. Even with prior experience, I still learned new things, especially around testthat. It led me to visit [Testing chapter](https://r-pkgs.org/testing-basics.html) on [R packages book](https://r-pkgs.org/). While tools like the [Positron Assistant](https://positron.posit.co/assistant) can help write unit tests, understanding the structure and principles of testthat remains essential for effective, human-aware vibe coding.
 
-- [gentle introduction to mixed effects models](https://www.nicolaromano.net/data-thoughts/mixed-effects-models/) by Nicola Romano explains when mixed-effects models are useful, especially in designs with repeated or clustered observations where the assumption of independent samples is violated. In such cases, including random effects (instead of treating group indicators solely as fixed predictors) helps correctly model the variability at each level and avoids **pseudoreplication** that can **inflate degrees of freedom** and wrongly put random effect variable effect into "residuals". Unlike just adding group factors as fixed effects, random effects treat group-level variation as drawn from a common distribution, allowing **better generalization beyond the sampled levels** and more realistic handling of hierarchical data structures. It also shows how to use `{nlme}` R package to perform mixed effect linear model.
+- [gentle introduction to mixed effects models](https://www.nicolaromano.net/data-thoughts/mixed-effects-models/) by Nicola Romanò explains when mixed-effects models are useful, especially in designs with repeated or clustered observations where the assumption of independent samples is violated. In such cases, including random effects (instead of treating group indicators solely as fixed predictors) helps correctly model the variability at each level and avoids **pseudoreplication** that can **inflate degrees of freedom** and wrongly put random effect variable effect into "residuals". Unlike just adding group factors as fixed effects, random effects treat group-level variation as drawn from a common distribution, allowing **better generalization beyond the sampled levels** and more realistic handling of hierarchical data structures. It also shows how to use `{nlme}` R package to perform mixed effect linear model.
 
-- [Power analysis - A flexible simulation approach using R](https://www.nicolaromano.net/data-thoughts/power-analysis-simulation/)by Nicola Romanò introduces how to use simulation-based methods in R for power analysis, which goes beyond what analytical tools like the `{pwr}` package can handle (ie, complex designs and mixed models where no simple formula exists). In her example, she compares two experimental designs with the same number of observations: a **nested repeated-measures design** analysed with a **linear mixed-effects model** (with individual as random effect), and an **independent design** analysed with a standard linear model. The simulation demonstrates that the repeated-measures design achieves higher statistical power for detecting a `treatment:time` effect with the same sample size, making it more efficient in this context.
+- [Power analysis - A flexible simulation approach using R](https://www.nicolaromano.net/data-thoughts/power-analysis-simulation/) by Nicola Romanò introduces how to use simulation-based methods in R for power analysis, which goes beyond what analytical tools like the `{pwr}` package can handle (ie, complex designs and mixed models where no simple formula exists). In her example, she compares two experimental designs with the same number of observations: a **nested repeated-measures design** analysed with a **linear mixed-effects model** (with individual as random effect), and an **independent design** analysed with a standard linear model. The simulation demonstrates that the repeated-measures design achieves higher statistical power for detecting a `treatment:time` effect with the same sample size, making it more efficient in this context.
 
 - Several other R stats blogs interests me:
 
@@ -44,7 +44,9 @@ image: "/assets/bitbites_thumb.png"
     
     2. produces latent cell representations that capture interpretable biological structure -- each latent dimension tends to reflect coherent gene-coexpression programs, and can be interpreted using gradient-based attribution techniques to link latent features back to gene and pathways that are interpretable.
 
-github: [https://github.com/Gartner-Lab/Concord](https://github.com/Gartner-Lab/Concord)
+   github: [https://github.com/Gartner-Lab/Concord](https://github.com/Gartner-Lab/Concord)
+
+  ![](https://media.springernature.com/full/springer-static/image/art%3A10.1038%2Fs41587-025-02950-z/MediaObjects/41587_2025_2950_Fig1_HTML.png)
 
 - [Squidiff](https://www.nature.com/articles/s41592-025-02877-y) published in Nature Methods late last year, introduces an in silico perturbation framework based on diffusion models to predict transcriptomic outcomes driven by developmental trajectories (time-course) as well as drug and genetic perturbations. Compared with previously benchmarked approaches such as [GEARS](https://www.nature.com/articles/s41587-023-01905-6) and [scGen](https://www.nature.com/articles/s41592-019-0494-8), SquiDiff is better suited to modeling fine-grained, continuous, and gradient-like transcriptomic changes, which are common in developmental processes and pharmacological perturbation. This advantage stems from the diffusion framework’s ability to model smooth transitions between cellular states rather than discrete shifts. The use cases that particularly interest me include: 
 
@@ -53,3 +55,7 @@ github: [https://github.com/Gartner-Lab/Concord](https://github.com/Gartner-Lab/
   2. Cross-cell-type drug response prediction, where a model trained on drug-versus-control scRNA-seq in cell type A is used to predict the drug response in cell type B given only control scRNA-seq for cell type B. 
   
   3. interpolating intermediate cellular states in time-course experiments, by training on scRNA-seq data from the start and end time points. This is a capability that is particularly distinctive to the SquiDiff framework.
+
+  github: [https://github.com/siyuh/Squidiff](https://github.com/siyuh/Squidiff) and [https://github.com/siyuh/Squidiff_reproducibility](https://github.com/siyuh/Squidiff_reproducibility)
+
+  ![](https://cancerdynamics.columbia.edu/sites/cancerdynamics.columbia.edu/files/styles/cu_crop/public/content/News/Squidiff_A%20Generative%20AI%20Model%20to%20Accelerate%20Precision%20Medicine_November%202025.png)
