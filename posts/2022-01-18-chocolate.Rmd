@@ -2,7 +2,7 @@
 title: "TidyTuesday: predict chocolate rating with xgboost"
 date: "2022-01-23"
 categories: ["R", "tidyTuesday", "tidymodels"]
-image: 'https://www.history.com/.image/ar_4:3%2Cc_fill%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_1200/MTc3OTk5Njc1MTU5MjI1OTY1/valentines-day-chocolate-gettyimages-923430892.jpg'
+image: '/assets/tidytuesday_thumb.png'
 params:
   data_date: '2022-01-18'
 ---

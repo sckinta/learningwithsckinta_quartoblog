@@ -32,4 +32,4 @@ listing:
   id: posts
   contents: posts
   type: grid
-  image-placeholder: "/posts/bitbites_thumb.png"
+  image-placeholder: "/assets/bitbites_thumb.png"

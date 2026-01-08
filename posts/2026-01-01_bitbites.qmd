@@ -11,7 +11,7 @@ format:
   html:
       code-fold: true
       code-overflow: 'wrap'
-image: ""
+image: "/assets/bitbites_thumb.png"
 ---
 
 Inspired by [Stephen Turner](https://blog.stephenturner.us/)[^1] 's weekly recap series, I’m starting a series called bitBites to regularly review what I read and learn. This is part of my New Year’s resolution. In an era of information overload, I benefit greatly from curators like Stephen who consistently surface content aligned with my interests. At the same time, I’ve realized that because everyone’s interests and perspectives differ, it’s important to create a personal “recap” as an output of my own digestion. It allows me to highlight ideas that resonate most with me and to internalize them more deeply.

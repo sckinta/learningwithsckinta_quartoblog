@@ -26,3 +26,4 @@ format:
   html:
     include-after-body: ../footer.html
 
+image: /assets/bitbites_thumb.png
