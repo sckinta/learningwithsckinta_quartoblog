@@ -1,0 +1,84 @@
+---
+title: "bitBites (2026-01-21): Posit Recap, EcoTyper and H&E to proteomics"
+author: "Chun Su"
+date: "2026-01-21"
+categories: ["bitBite"]
+execute: 
+  eval: false
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: true
+      code-overflow: 'wrap'
+image: "/assets/bitbites_thumb2.png"
+---
+
+This week we will recap Posit summary of 2025, Claude-assisted refactoring stories, a few bioinformatics relevant new R packages, and some exciting work predicting spatial biology from H&E images.
+
+## R, data science and AI
+
+### Posit 2025 recap
+
+[Posit 2025 recap](https://posit.co/blog/2025-posit-open-source-year-in-review/) provides a very comprehensive list of packages supported/developed by Posit. The parts new to me include
+
+- [`{nanonext}`](https://tidyverse.org/blog/2025/09/nanonext-1-7-0/) is a R binding to NNG (Nanomsg Next Generation), a C messaging library that implements scalability protocols for distributed systems. By transferring data between languages through `socket`, it enables seamless interoperability between R and other modern programming languages. 
+
+- [`{mirai}`](https://tidyverse.org/blog/2025/09/mirai-2-5-0/) is a foundation for asynchronous and parallel computing across the R ecosystem. I encountered asynchronous computing in my previously recap about [LLM shiny app written by Veerle Eeftink - van Leemput](https://shiny.posit.co/blog/posts/shiny-side-of-llms-part-1/). Besides async shiny application (`{promise}`), mirai also powers [parallel map in `{purrr}`](https://tidyverse.org/blog/2025/07/purrr-1-1-0-parallel/) (vs`{furrr}`, `{future}`) and [parallel hyperparameter tuning in `{tune}`](https://tune.tidymodels.org/news/index.html#parallel-processing-2-0-0)
+
+- Tidymodels: [`{important}` and `{filtro}`](https://tidyverse.org/blog/2025/11/two-new-tidymodels-packages/) becomes part of tidymodel universe for feature selection with pipes. sparsity matrix is supported in tidymodels now
+
+- AI tools: instead of rephrasing the updates that Posit did on AI, I would like to directly cite Stephen Turner's summary on AI tools in R universe.[^1]
+
+![Made by Turner in Paired Ends blog](https://substackcdn.com/image/fetch/$s_!UAoQ!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fe2fba2c7-5c59-4fff-9b92-889dab350b84_1037x741.png)
+
+
+[^1]: The Modern R Stack for Production AI, Paired Ends, [https://blog.stephenturner.us/p/r-production-ai](https://blog.stephenturner.us/p/r-production-ai)
+
+### Claude Code assisted code update
+
+Claude Code popped up twice in blogs I read this week: [From scripts to pipelines in the age of LLMs](https://brodrigues.co/posts/2026-01-13-data_science_llm_age.html) by Bruno Rodrigues and [Semi-automating 200 Pull Requests with Claude Code](https://blog.davisvaughan.com/posts/2026-01-09-claude-200-pull-requests/) by Davis Vaughan. 
+
+Both are about using Claude to modernize legacy R code, but in very different ways. Rodrigues showed how he used LLMs to help turn messy, undocumented packages into something more structured and pipeline-friendly—basically getting machines to understand old code without spending days digging through documentation. Vaughan used Claude to fix reverse dependencies, semi-automating ~200 pull requests to replace the now-obsolete `dplyr::id()` across a huge R ecosystem, and he even shared the exact prompts he used (which is gold if you’re learning this stuff). 
+
+What struck me is that both posts landed on the same lesson: when you ask an agent to code for you, **limit the context and force a clear structure**.
+
+### New/Updated R packages of interest
+
+- [blastar](https://github.com/loukesio/blastar): NCBI BLAST tool realized in R, including functions to fetch sequence with accession (genebank API access), blast nucleotide and protein sequences and build a sequence phylogenetic tree
+
+- [mascarade](https://alserglab.github.io/mascarade/): create a boundary around cell clusters for seurat object (`Idents`) with clear boundary and label the clusters. It will be useful to label umap with too many clusters that the color scheme becomes hard to recognize by eye.
+
+- [orthogene](https://bioconductor.org/packages/release/bioc/html/orthogene.html): a bioconductor package to map ortholog within and across species. 
+
+- [querychat](https://posit-dev.github.io/querychat/r/): a LLM tool to convert user input into SQL to filter data. It is [embedded in the shiny context](https://posit-dev.github.io/querychat/r/articles/build.html). However, the [tool calling part](https://posit-dev.github.io/querychat/r/articles/tools.html) can be isolated out to custom to specific usage (eg. build app across multiple datasets).
+
+> Querychat is a particularly good fit for Shiny apps that have:
+>
+> 1. **A single data source** (or a set of related tables that can be joined)
+>
+> 2. **Multiple filters** that let users slice and explore the data in different ways
+>
+> 3. **Several visualizations and outputs** that all depend on the same filtered da
+
+## Bioinformatics and Biology
+
+### EcoTyper
+
+[EcoTyper](https://doi.org/10.1016/j.cell.2021.09.014), introduced in 2021, is a framework for the systematic identification of cell states and **cellular communities (ecotypes)** from bulk, single-cell and spatial gene expression data. It is a extention of *in silico* cytometry tool CIBERSORTx ([Newman et al., Nature Biotechnology 2019](https://www.nature.com/articles/s41587-019-0114-2)), and created finer "sorting" and state-state community. The innovation relies on: 
+
+1. **Adaptive false positive index (AFI)** metric to filter spurious  clusters after cNMF without prior knowledge
+2. Using **co-association** between states to identify multicellular ecotypes without prior spatial information
+
+- github: [https://github.com/digitalcytometry/ecotyper](https://github.com/digitalcytometry/ecotyper). The tool contains two mode: discovery and recovery, in which recovery mode maps cell type to previously defined cell states and ecotypes in either Carcinoma ([Luca/Steen et al., Cell 2021](https://doi.org/10.1016/j.cell.2021.09.014)) or Lymphoma ([Steen/Luca et al., Cancer Cell 2021](https://doi.org/10.1016/j.ccell.2021.08.011))
+
+### H&E image to spatial proteomics
+
+Two recent papers made me realize how serious H&E images are becoming for biomarker discovery, especially for clinical trials where spatial assays are still expensive and hard to scale.
+
+- [Valanarasu et al Cell 2026](https://www.cell.com/cell/fulltext/S0092-8674(25)01312-1) introduce **GigaTIME**, a model trained on paired H&E and Multiplex immunofluorescence (mIF) data across 21 proteins to generate virtual spatial protein maps. They in silico predicted **21 proteins across 24 cancer types and 300+ subtypes**, and then linked predicted biomarkers to clinical phenotypes like tumor stage and survival.
+
+
+- [Li et al Nature Medicine 2026](https://www.nature.com/articles/s41591-025-04060-4) introduce **HEX** which predicts the spatial expression of ~**40 biomarkers (immune, structural, functional)** directly from routine H&E slides. The prediction accuracy is pretty solid (AUC around 0.7–0.8), and combining these virtual proteomics features improved lung cancer prognosis and immunotherapy response prediction compared with standard clinical and molecular biomarkers.
+
+These papers really make H&E feel like a compressed “omics file”, cheap to generate, but increasingly rich enough to pull out spatial biology and potential biomarkers at scale.

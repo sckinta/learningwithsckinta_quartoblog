@@ -1,1 +1,8 @@
 /* css styles */
+.figure-caption {
+  text-align: center;
+}
+/* For Quarto versions 1.4+, use figcaption instead */
+figcaption {
+  text-align: center;
+}

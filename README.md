@@ -1,3 +1,3 @@
 # Learning With Sckinta
 
-Personal Blog
+Personal Blog: https://learningwithsckinta.netlify.app/
