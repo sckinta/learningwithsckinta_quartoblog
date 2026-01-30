@@ -1,7 +1,7 @@
 ---
-title: "bitBites (2026-01-21): Posit Recap, EcoTyper and H&E to proteomics"
+title: "bitBites (2026-01-28): Posit Recap, EcoTyper and H&E to proteomics"
 author: "Chun Su"
-date: "2026-01-21"
+date: "2026-01-28"
 categories: ["bitBite"]
 execute: 
   eval: false
