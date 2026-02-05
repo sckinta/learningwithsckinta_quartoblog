@@ -1,0 +1,62 @@
+---
+title: "bitBites (2026-02-04): R AI tool tutorials, single cell research and a spatial signal correction tool"
+author: "Chun Su"
+date: "2026-02-04"
+categories: ["bitBite"]
+execute: 
+  eval: false
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: true
+      code-overflow: 'wrap'
+image: "/assets/bitbites_thumb2.png"
+---
+
+This week’s recap spans new project-based tutorials in the R AI ecosystem, reflections on how coding agents reshape learning, and recent advances in computational biology. I highlight emerging tool for parallel computing in R, shiny projects with AI R tooling, exciting research on fibroblast checkpoints and spatial segmentation denoising.
+
+## R, data science and AI
+
+### Project-based tutorials
+
+- [`{querychat}`](https://posit-dev.github.io/querychat/r/): I briefly mentioned the package last week in my recap, this week, Veerle Eeftink - van Leemput wrote a whole [blog post](https://shiny.posit.co/blog/posts/querychat-python-r/) on how to use it to build a chat-based shiny app in both R and python. No more complex filter UI, Let's chat.
+
+- [`{ellmer}`](https://ellmer.tidyverse.org/index.html): surprised and not surprised, ellmer can also "read" image! The recent [blog](https://www.jumpingrivers.com/blog/ellmer-dynamic-alt-text/) from jumping rivers create a shiny app to create dynamic alt text using [`content_image_file()`](http://ellmer.tidyverse.org/reference/content_image_url.html) in chat.
+
+- [`{futurize}`](https://www.futureverse.org/): As simple as `%>% futurize()` after `map`/`lapply` those looping functions, it automatically distribute your job to multiple workers. [This blog](https://www.jottr.org/2026/01/22/futurize-0.1.0/) additionally showed the application of `futurize` in model training.
+
+- [`{ragnar}`](https://cran.r-project.org/web/packages/ragnar/vignettes/ragnar.html): Nils Indreiten's posted a intriguing project to build an Podcast Assistant using RAG to answer the questions about R Weekly Highlights Podcast. It covers the whole flows with 5 steps: 1. scrape transcript from [podhome.fm](http://podhome.fm) api, 2.build vector store for RAG, 3. call rag retrieve in Elmer enabled chat, 4. create shiny chat app, 5. deploy shiny app with Posit Connect Cloud basic tier.
+
+### Coding Agent and the impact on learning
+
+Two recent blogs, [The pop quizification of knowledge](https://open.substack.com/pub/kucharski/p/the-pop-quizification-of-knowledge?utm_campaign=post&utm_medium=web) by Adam Kucharski and [How AI assistance impacts the formation of coding skills](https://blog.stephenturner.us/p/ai-assistance-coding-skills-anthropic?utm_campaign=post&utm_medium=email&triedRedirect=true) by Stephen Turner, touch on a common theme: **does AI-accelerated, fast-food-style knowledge actually benefit human learning?** 
+
+Turner’s post, from an educator's perspective, discussed the recent publication of Anthropic[^1] on how AI assistance affects coding skill formation. Although I have been out of academia as student for over 8 years, this topic still resonated with me. Coding skills are not primarily formed by autocomplete or have an agent plan and write code end-to-end; They emerge from the traditional trial-and-error process. AI shortens the distance between a problem and Stack Overflow answer, but it should not replace the process of problem formulation, exploration and testing, which are core to developing techinical intuition.
+
+Kucharski’s blog made me reflect on my own habit as well. I enjoy the bulletin points and summary in note taking, it doesn’t mean that I feel those thing useful if I have not engaged with the full underlying material. For entertainment, of course, it is different. The value is the experience itself.Still, I confess I watch plenty of short TV-show recap videos on YouTube. Who has time to watch all 80 episodes of a series anymore?
+
+[^1]: Shen, J. H., & Tamkin, A. (2026). How AI Impacts Skill Formation. arXiv 2601.20245. https://doi.org/10.48550/arXiv.2601.20245
+
+
+
+## Bioinformatics and biology
+
+### Fibroblast checkpoint target ADAM12 
+
+Zeming Zhang's lab published [this beautiful work](https://www.cell.com/cancer-cell/fulltext/S1535-6108(25)00552-5) identifying ADAM12 as a novel fibroblast checkpoint target with anti-tumor potential. It starts with *in silico* screening and is followed by ex vivo perturb-seq experiments with CRC Patient Derived Fibroblast. The **gene modules/gene program identification and co-regulatory relationship** by combining *ex vivo* and *in vivo* single cell experiments are very intriguing. The result was further validated by organoid and mouse models. The work shows that ADAM12-expressing CAFs modulate tumor immunity by shaping the balance between TGF-β–driven immunosuppressive signaling and IFN-γ–associated anti-tumor responses, positioning ADAM12 as a potential therapeutic lever to reprogram fibroblast–immune interactions in tumors.
+
+### CellAdmix
+
+[Michel et al](https://www.nature.com/articles/s41588-025-02497-4) systematically evaluated how **cell segmentation errors** in imaging-based spatial transcriptomics confound downstream analyses, including differential expression, neighborhood effects, and ligand–receptor inference. They developed a R package [CellAdmix](https://github.com/kharchenkolab/cellAdmix), using a factorization-based method to detect gene expression patterns in the local spatial mix of cells, assign these patterns to cell types and remove miassigned transcripts from inappropriate cells. The correcting admixture substantially improves downstream inference.
+
+### Virtual cells in preclinical research
+
+A recent review in NPJ Digital Medicine outlines [AI-driven virtual cell models and their application in preclinical research](https://www.nature.com/articles/s41746-025-02198-6). It categorized 4 key technical pathways with available softwares: 
+
+1. **modality completion** (e.g., predicting full transcriptomes from spatial or partial assays)
+2. perturbation **prediction across systems** (e.g., cell lines to human) 
+3. *in silico* perturbation for **hypothesis generation**
+4. modeling **intercellular communication** (often via GNN) . 
+
+It also highlights importance of **closed-loop validation** with experimental systems (e.g., CRISPR and organoids) and stresses **uncertainty quantification** for translational relevance. The review also discusses ethical, biosecurity, and translational challenges associated with virtual cell deployment
