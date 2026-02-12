@@ -1,0 +1,41 @@
+---
+title: "bitBites (2026-02-11): Codex demo, AlphaGenome"
+author: "Chun Su"
+date: "2026-02-11"
+categories: ["bitBite"]
+execute: 
+  eval: false
+  warning: false
+  message: false
+format:
+  html:
+      code-fold: true
+      code-overflow: 'wrap'
+image: "/assets/bitbites_thumb2.png"
+---
+## R, data science and AI
+
+- **Codex**: Two Codex tutorial posts caught my interest this week. Although I have no hands-on experience with popular coding agents (other than the [shiny assistant from Positron](https://shiny.posit.co/blog/posts/shiny-assistant/)), I would personally choose Codex over Claude Code purely for economic reasons. Stephen Turner demonstrates refactoring R package `{qqmam}`[^1] with a single prompt[^2]. The [rednote post](https://www.xiaohongshu.com/discovery/item/69896a18000000001a026c61?app_platform=ios&app_version=9.19.3&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB4FLbb7XmUTPucPQaet_OmnLgrmI9PjmAcAjQiLzOU30=&author_share=1&xhsshare=CopyLink&shareRedId=OD06MUQ8RUE2NzUyOTgwNjY7OThFOTg_&apptime=1770771039&share_id=b835a8766c6b41fda98c1001fa023381) provides a step-by-step guide to setting up a “vibe coding” workflow in Codex Desktop.
+
+[^1]: Turner, S. D. (2018). qqman: an R package for visualizing GWAS results using Q-Q and manhattan plots. Journal of Open Source Software, 3(25), 731. [https://doi.org/10.21105/joss.00731](https://doi.org/10.21105/joss.00731).
+
+[^2]: OpenAI Codex App by Stephen Turner. [https://blog.stephenturner.us/p/openai-codex-app-qqman](https://blog.stephenturner.us/p/openai-codex-app-qqman)
+
+- [dplyr column recording](https://dplyr.tidyverse.org/articles/recoding-replacing.html): extension of `case_when` with cleaner coding.
+    - `replace_when(x, .. ~ .., ...)` lets you pull the primary input to the front (even allow pipe, although i dont like pipe inside function), making the intent more clear. and preserve the levels when it is a factor. 
+    - `record_values()` kicks in whenever you use `%in%` or `==` in the condition side. It contains 2 APIs `record_values(x, ..~.., ...)` and `record_values(x, from, to)` with lookup list (created by `tribble`).
+    - `replace_values()`, same as `replace_when(x, .. ~ .., ...)` when you just want to update original values. The syntax is same as `record_values()`.
+
+- R packages of interest
+
+  - [{annotaR}](https://cran.r-project.org/web/packages/annotaR/index.html): It annotates gene with 3 ontology system (GO term, associated disease, associated drug), supporting [Open Target](https://academic.oup.com/nar/article/45/D1/D985/2605745?login=false) API for gene-disease and gene-drug annotation. 
+
+  - Baysien framework NIMBLE: [{nimbleQuad}](https://r-nimble.org/blog/nimbleQuad.html) provides quadrature-based inference methods that use Laplace and Adaptive Gauss-Hermite Quadrature (AGHQ) approximation. [{NIMBLE} v1.4.0](https://r-nimble.org/blog/derived-quantities.html) allows using “derived quantities” (eg. posterior mean, posterior variance) to calculate or record additional quantities of interest during an MCMC.
+
+## AlphaGenome
+
+Google DeepMind published this foundation model [AlphaGenome](https://www.nature.com/articles/s41586-025-10014-0) at Nature last week. Although it hss been on BioRxiv for over half a year, the release of peer-reviewed version still made a big slash in the field. This unified DNA model allows up to 1Mbp sequence input and predicts genome tracks for diverse modalities, including splicing (donor-acceptor sites, coverage, intron junction), gene expression, accessibility (ATAC, DNAase), ChIP-seq (histone, TF binding) and chromatin contact map, at as high as single nucleotide resolution. This single nucleotide resolution also enables the variant regulatory effect prediction, such as eQTL, caQTL/dsQTL, bQTL and paQTL, which is particularly impactful for rare variants where traditional association-based study lacks statistical power. Since it was trained on thousands of transcriptomic and epigenomic datasets across diverse cell types (cell lines and primary tissues), the model allows cell-specific prediction. Although paper admits the limitation of cell-specific prediction in certain tasks (eg. alternative splicing, expression fold change), this is a big breakthrough in my perspective. The cell context is critical to DNA regulatory landscape, which is frequently overlooked by previous tools. Through systematic benchmarking, the authors claims that integration of AlphaGenome scores from multiple modalities through shallow models (eg. random forest, LASSO) increase the performance of certain tasks. This is not surprising given the intrigated property of regulatory machinary represented by those genome tracks. 
+
+Below represents all the tasks that AlphaGenome has been benchmarked on. [Github repo](https://github.com/google-deepmind/alphagenome) provides python API for non-commercial usage. Pre-trained model weights can be accessed through [Hugging Face](https://huggingface.co/collections/google/alphagenome).
+
+![Figure 1d,e from Avsec et al 2026 Nature](/posts/2026-02-11_bitbites/alphaGenome_task_benchmark.png)
