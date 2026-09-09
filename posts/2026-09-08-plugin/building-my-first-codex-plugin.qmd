@@ -1,0 +1,388 @@
+---
+title: "Building My First Codex Plugin: A Pathway Enrichment Copilot"
+subtitle: "From standalone R scripts to a reproducible, tool-using scientific workflow"
+date: last-modified
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    code-copy: true
+    smooth-scroll: true
+    theme: cosmo
+execute:
+  enabled: false
+image: "/assets/plugins.jpeg"
+---
+
+## Rationale
+
+"AI agents" have been the hottest buzz word since 2025. My understanding about 'AI agents" was workflow automation by natural language trigger, which can improve and 'reason' with continuing conversation. I read blogs about 'agent' components -- MCPs, SKILLs, chatbot, but I never took action. Partially this is due to the fast advancement in 'agents'. 
+
+At beginning of year, I was thinking to use `{ellmer}`, `{shinychat}` and `{querychat}` to build a data retrival and visualization chatbot with bioinformatics database API, then SKILLs became popular, and OpenAI released [Rosalind](https://openai.com/index/introducing-gpt-rosalind/) with dozens of SKILLs under plugin `[life-science-research]`(https://github.com/openai/plugins/tree/main/plugins/life-science-research) to ochester multiple bioinformatics database APIs like a real bioformatic agent. Then I started to read public SKILLs repo and questioned about what is plugin. Until recently I had a pleasure to work with OpenAI at a contract work, I realize plugin is just SKILLS + App. Then what is app? Where are the MCPs connected to? The questions accumulate and I realize that I will not be able to fully grasp them unless I build one myself. This starts my first Codex plugin development exercise. 
+
+Pathway enrichment analysis is typically done with multiple R functions at my daily job. The analysis usually is followed with a manual journal searching to find support evidences for gene or pathways. If I can combine these two by replacing the manual journal searching with PubMed MCP, it will become a 'agent', including workflow instructions (SKILLs), tool ochestra, MCP client and agent packaging. A perfect starting project!
+
+## Architecture
+
+The goal was larger than packaging code. I wanted Codex to know:
+
+- when pathway enrichment method (GSEA vs. ORA) is appropriate;
+- which inputs and parameters are required;
+- how to run the scripts in the correct order;
+- how to check outputs before interpreting them;
+- when to retrieve supporting literature from PubMed
+
+The R scripts perform the computation (tools); the skill explains the procedure and its boundaries; the MCP client provides literature-search capability; and the plugin package makes those parts installable together.
+
+
+```{mermaid}
+flowchart LR
+    U[User request and gene table] --> S[SKILL.md workflow]
+    S --> M[Identifier mapping]
+    M --> E[ORA or preranked GSEA]
+    E --> V[Plots and QC]
+    E --> P[PubMed MCP search]
+    V --> R[Evidence-aware report]
+    P --> R
+
+    subgraph Plugin package
+      S
+      M
+      E
+      V
+      P
+    end
+```
+
+The repository ended up with four important layers:
+
+```text
+pathway_enrichment_plugin/
+├── .agents/plugins/marketplace.json
+├── renv.lock
+├── plugins/
+│   └── pathway-enrichment-copilot/
+│       ├── .codex-plugin/plugin.json
+│       ├── .mcp.json
+│       └── skills/
+│           └── pathway-enrichment/
+│               ├── SKILL.md
+│               ├── agents/openai.yaml
+│               ├── examples/
+│               ├── references/
+│               └── scripts/
+│                   ├── id_maps.R
+│                   ├── perform_enrichment.R
+│                   └── visualize_enrichment.R
+└── README.md
+```
+See the [official overview of plugin architecture](https://developers.openai.com/plugins/concepts/plugins) for more details
+
+## Step-by-step implementation
+
+
+### Step 1: Prepare two language environments deliberately
+
+The project uses both Python tooling and R. I initialized the repository with `uv`
+
+```bash
+cd /path/to/parent
+mkdir -p pathway_enrichment_plugin
+cd pathway_enrichment_plugin
+
+uv init
+uv venv --python 3.13
+uv add pyyaml
+source .venv/bin/activate
+```
+
+The Python environment supports development utilities, but it does **not** own the analysis pipeline. 
+
+R packages are managed separately with `renv` for reproducibility boundaries.
+
+```bash
+brew install pkg-config cairo # On macOS, compiled R graphics dependencies also required system libraries:
+```
+
+```r
+renv::init()
+
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+renv::install("gdtools", type = "source", rebuild = TRUE)
+
+BiocManager::install(c(
+  "clusterProfiler",
+  "enrichplot",
+  "org.Hs.eg.db",
+  "msigdbr",
+  "biomaRt"
+))
+
+install.packages(c(
+  "optparse", "jsonlite", "readr", "dplyr", "tidyr", "yaml",
+  "lubridate", "gdtools", "purrr", "stringr", "ggplot2", "forcats"
+))
+
+renv::snapshot()
+```
+
+### Step 2: Scaffold the plugin and the skill
+
+I used the built-in plugin and skill scaffolding scripts instead of creating every directory manually:
+
+```bash
+python3 $HOME/.codex/skills/.system/plugin-creator/scripts/create_basic_plugin.py \
+  pathway-enrichment-copilot \
+  --path ./plugins \
+  --marketplace-path ./.agents/plugins/marketplace.json \
+  --with-skills \
+  --with-mcp \
+
+python3  $HOME/.codex/skills/.system/skill-creator/scripts/init_skill.py \
+  pathway-enrichment \
+  --path ./plugins/pathway-enrichment-copilot/skills \
+  --resources scripts,references
+```
+
+Scaffolding provided a valid starting structure (placeholder) to reduce typographical mistakes
+
+| Component | Responsibility in this project |
+|---|---|
+| Plugin | The installable package and stable identity |
+| Skill | Instructions, decision rules, quality checks, and bundled resources |
+| Script | Deterministic computation with explicit inputs and outputs |
+| MCP server | A standard interface to an external capability—in this case, PubMed |
+| Marketplace | A source from which the development plugin can be discovered and installed |
+
+The [official packaging guide](https://developers.openai.com/plugins/build/plugins) confirms that every plugin has a `.codex-plugin/plugin.json` manifest and may contain a `skills/` directory and a bundled `.mcp.json` configuration. Local and repository marketplaces are development or team-distribution sources; they are distinct from public publishing.
+
+## Step 3: Build R scripts (tools)
+
+Before asking an agent to orchestrate the workflow, I made each R stage callable from the command line. 
+
+1. Harmonize gene identifiers
+
+The mapping stage accepts `SYMBOL`, `ENTREZID`, `ENSEMBL`, or reviewed `UNIPROT` identifiers and produces an Entrez identifier for downstream analysis. It also preserves the original fields so exclusions and ambiguous mappings can be audited.
+
+```bash
+Rscript plugins/pathway-enrichment-copilot/skills/pathway-enrichment/scripts/id_maps.R \
+  --input_csv plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes.csv \
+  --gene_format SYMBOL \
+  --organism human \
+  --output_csv plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes_harmonized.csv
+```
+
+2. Run ORA or GSEA
+
+The wrapper supports several MSigDB-derived collections `--collection` (HALLMARK, Reactome, WikiPathways, KEGG, and Gene Ontology categories), allows different enrichment method `--enrichment_mode` and species where gene come from `--organism`
+
+```bash
+Rscript plugins/pathway-enrichment-copilot/skills/pathway-enrichment/scripts/perform_enrichment.R \
+  --input_csv plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes_harmonized.csv \
+  --collection HALLMARK \
+  --enrichment_mode ORA \
+  --organism human \
+  --sig_label p.adjust \
+  --sig_cutoff 0.05 \
+  --output_prefix plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes_enrichment
+```
+
+3. Visualize only valid results
+
+The visualization stage produces a pathway-level dot plot and a gene-tile plot. 
+
+```bash
+Rscript plugins/pathway-enrichment-copilot/skills/pathway-enrichment/scripts/visualize_enrichment.R \
+  --input_csv plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes_enrichment.csv \
+  --sig_label p.adjust \
+  --output_prefix plugins/pathway-enrichment-copilot/skills/pathway-enrichment/examples/genes_enrichment
+```
+
+## Step 4: `SKILL.md` into an executable scientific protocol
+
+Writing `SKILL.md` was the most conceptually new part of the exercise, which defines 
+- when the workflow should activate
+- what information the agent must collect (input jason)
+- the order of operations
+- the success criteria
+- the stopping conditions
+- what 'must not do'
+
+Here is high-level SKILL documentation for our example
+
+- Input definition (the Rscript parameters)
+  - Infer ORA when the input lacks a ranking statistic and GSEA when one is present, unless the user specifies otherwise.
+  - Never infer the meaning of positive and negative GSEA statistics from an ambiguous column name.
+  - For some parameters, explicitly ask users if cannot be inferred
+- Workflow order
+  - id_maps.R -> perform_enrichment.R -> visualize_enrichment.R
+  - Report mapping rates, duplicate identifiers, ambiguous mappings, and exclusions.
+- Stop when required columns are absent, statistics are invalid, or mapping fails.
+- Do not invent an interpretation when no pathway passes the threshold.
+- Keep computed enrichment, published evidence, and new hypotheses in separate categories.
+
+The complete SKILL refer to [pathway-enrichment SKILL](https://github.com/sckinta/pathway_enrichment_plugin/blob/main/plugins/pathway-enrichment-copilot/skills/pathway-enrichment/SKILL.md)
+
+### Step 5: Add PubMed through MCP
+
+The enrichment calculation is local, but literature retrieval is an external capability. I configured a PubMed MCP server [pubmedmcp](https://github.com/grll/pubmedmcp) in `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "pubmed": {
+      "command": "uvx",
+      "args": [
+        "--python",
+        "3.12",
+        "--with",
+        "mcp<2",
+        "pubmedmcp==0.1.4"
+      ]
+    }
+  }
+}
+```
+
+This will require `uvx` from `PATH`. `uvx` creates an isolated cached environment, so the PubMed server does not need to share the project's Python virtual environment. 
+
+The launch command can be smoke-tested with standard input closed:
+
+```bash
+uvx --refresh --python 3.12 --with "mcp<2" "pubmedmcp==0.1.4" </dev/null
+```
+
+`--refresh` is useful during diagnosis, but it should not remain in `.mcp.json`, where it would force dependency checks on every launch.
+
+### Step 6: Validate, install, and invalidate caches during development
+
+Two levels of validation are required because a valid skill does not guarantee a valid plugin package:
+
+```bash
+python3 $HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
+  plugins/pathway-enrichment-copilot/skills/pathway-enrichment
+
+python3 $HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
+  plugins/pathway-enrichment-copilot
+```
+
+I then added the repository marketplace and installed the plugin from it:
+
+```bash
+codex plugin marketplace add .
+
+python3 $HOME/.codex/skills/.system/plugin-creator/scripts/update_plugin_cachebuster.py \
+  plugins/pathway-enrichment-copilot
+
+marketplace_name=$(python3 $HOME/.codex/skills/.system/plugin-creator/scripts/read_marketplace_name.py \
+  --marketplace-path .agents/plugins/marketplace.json)
+
+codex plugin add "pathway-enrichment-copilot@${marketplace_name}"
+```
+
+During local development, editing files in the source repository does not necessarily update an already installed copy (cache-buster version). Bumping the development version and reinstalling makes the change discoverable. Starting a new Codex task then reloads the skill and MCP tools. This install-reload cycle is the plugin equivalent of rebuilding an application after changing its source.
+
+### Step 7: Test behavior, not only files
+
+The most valuable test is an end-to-end request that contains enough biological context to exercise every stage. Below is an example prompt
+
+> Run preranked GSEA on `genes.csv` using HALLMARK. Positive statistics mean genes increased after treatment. The indication is melanoma, the cell type is CD8 T cells, and the treatment is anti-PD-1. Review the top five nonredundant pathways and up to three representative genes per pathway in PubMed, limiting publications to 2018/01/01 through 2026/12/31. Save all outputs and the PubMed evidence table without overwriting existing files.
+
+A successful run should leave inspectable evidence:
+
+- input validation and identifier-mapping QC;
+- a recorded ranking direction;
+- effective enrichment parameters;
+- CSV and RDS results;
+- readable plots;
+- the effective PubMed queries;
+- PMID- or DOI-linked evidence; and
+- a report that separates statistical results, publications, and hypotheses.
+
+This also showed why end-to-end tests expose issues that unit tests miss. The scripts may pass independently while runtime discovery, environment activation, MCP startup, output naming, or agent decision rules still fail.
+
+## Summarize take-away
+
+1. A plugin is a package, while a skill is a protocol
+
+The plugin is what users install. The skill is what tells the model how and when to perform the work. Keeping those ideas separate made the repository easier to reason about.
+
+2. Instructions from SKILLS are part of the implementation
+
+In our example, rules about the ORA universe, GSEA direction, mapping ambiguity, and causal overinterpretation belong in the operational skill because they affect every run.
+
+3. MCP is a capability boundary
+
+The PubMed server is independently launched and versioned from SKILLS. Its failure should not destroy completed enrichment outputs. 
+
+4. Reproducibility spans more than a lockfile
+
+`renv.lock` records R packages. However, the plugin run still relies on the local R enviroment and the python environment used by the MCP server. Thus, the current plugin is not 'portable'
+
+5. Scripts under SKILLS are subject to change
+
+At test run, codex updates the scripts in its independent task folder when original scripts failed.
+
+## Current limitations and a practical roadmap
+
+The plugin is functional as a development exercise, but it is not yet a frictionless public product. 
+
+1. Distribution
+
+The plugin currently is a local implementation, which depends on users having R, `uv`/`uvx`, native build libraries, recovered renv, local hosted MCP server. A local implementation favors privacy and direct file access but pushes installation complexity to users. 
+
+For moden distributable plugin architecture, I would 
+
+- convert R scripts to additional MCP server ('[{mcptools}](https://posit-dev.github.io/mcptools/articles/server.html)')
+- wrapping the remotely hosted MCP endpoint into an [custom Apps](https://developers.openai.com/showcase/apps?use_case=internal-tools&utm_source=chatgpt.com)
+- Once that App is published (require workplace admin), plugin should depend on the `app_id` specified in `.app.json`. Then .`codex-plugin/plugin.json` tells Codex that the plugin's apps are defined in .app.json:
+
+```text
+bioanalytics-plugin/
+├── .app.json
+├── .codex-plugin/
+│   └── plugin.json
+└── skills/
+    └── biomarker-analysis/
+        └── SKILL.md
+```
+
+`.app.json`
+
+```json
+{
+  "apps": [
+    {
+      "id": "YOUR_CHATGPT_APP_ID"
+    }
+  ]
+}
+```
+
+`codex-plugin/plugin.json`
+
+```json
+{
+  "name": "enrichment-analysis-plugin",
+  "description": "Internal computational biology workflows",
+  "apps": "./.app.json"
+}
+```
+
+Plugin can have multiple apps. There are already public PubMed MCP servers. One currently exposes a remote Streamable HTTP endpoint at
+`https://pubmed.caseyjhand.com/mcp` which includes tools for PubMed search, article retrieval, citations, MeSH exploration, related research, and some full-text retrieval paths. It also shows direct Codex configuration for that endpoint.
+
+2: Replace unstable BioMart dependence
+
+`id_maps.R` currently contacts the Ensembl BioMart service. Remote availability makes an otherwise local analysis fragile. For identifiers supported by `org.Hs.eg.db`, a local `AnnotationDbi::mapIds()`-based path could cover common SYMBOL, ENTREZID, ENSEMBL, and possibly UNIPROT mappings without a network call. The implementation should:
+
+
+## References
+
+- OpenAI. [Plugin architecture](https://developers.openai.com/plugins/concepts/plugins).
+- OpenAI. [Package your plugin](https://developers.openai.com/plugins/build/plugins).
+- Project `README.md` and the bundled `pathway-enrichment/SKILL.md` in [the pathway enrichment plugin repository](https://github.com/sckinta/pathway_enrichment_plugin/tree/main).
